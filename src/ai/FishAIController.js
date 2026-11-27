@@ -96,7 +96,8 @@ export default class FishAIController {
       if (this.hungerSystem) {
         this.hungerSystem.update(fish, delta, {
           isSeekingFood: fish.transient.behaviorState === BEHAVIOR_STATES.SEEK_FOOD
-            || fish.transient.behaviorState === BEHAVIOR_STATES.APPROACH_PREY,
+            || fish.transient.behaviorState === BEHAVIOR_STATES.APPROACH_PREY
+            || fish.transient.behaviorState === BEHAVIOR_STATES.CHASE,
         });
       } else {
         fish.transient.isHungry = false;
@@ -312,25 +313,34 @@ export default class FishAIController {
     const targetId = preferredId ?? prey.targetId;
 
     if (targetId) {
-      const visible = getPreyTarget(fish, fishes);
-      if (visible && visible.id === targetId) {
-        prey.targetId = visible.id;
-        prey.targetLastPosition = { ...visible.position };
-        return { position: visible.position, distance: visible.distance ?? Infinity, id: visible.id, remembered: false };
-      }
-      const remembered = contacts.get(`fish:${String(targetId)}`);
-      if (remembered
-        && remembered.category === VISION_CATEGORIES.PREY
-        && remembered.recoveryTimer > 0
-        && remembered.lastKnownPosition) {
-        const targetFish = fishes.find((candidate) => candidate.persistent.id === targetId);
-        if (targetFish && canConsumeFish(fish, targetFish)) {
-          prey.targetLastPosition = { ...remembered.lastKnownPosition };
-          const dx = remembered.lastKnownPosition.x - fish.transient.position.x;
-          const dy = remembered.lastKnownPosition.y - fish.transient.position.y;
-          return { position: remembered.lastKnownPosition, distance: Math.hypot(dx, dy), id: targetId, remembered: true };
+      const contact = contacts.get(`fish:${String(targetId)}`);
+      const targetFish = fishes.find((candidate) => candidate.persistent.id === targetId);
+      const validTarget = targetFish && canConsumeFish(fish, targetFish);
+
+      if (validTarget && contact?.visible && contact.category === VISION_CATEGORIES.PREY) {
+        const position = contact.position ?? targetFish.transient?.position;
+        if (position) {
+          const dx = position.x - fish.transient.position.x;
+          const dy = position.y - fish.transient.position.y;
+          const distance = contact.distance ?? Math.hypot(dx, dy);
+          prey.targetId = targetId;
+          prey.targetLastPosition = { ...position };
+          return { position: { ...position }, distance, id: targetId, remembered: false };
         }
       }
+
+      if (validTarget
+        && contact
+        && contact.category === VISION_CATEGORIES.PREY
+        && contact.recoveryTimer > 0
+        && contact.lastKnownPosition) {
+        prey.targetId = targetId;
+        prey.targetLastPosition = { ...contact.lastKnownPosition };
+        const dx = contact.lastKnownPosition.x - fish.transient.position.x;
+        const dy = contact.lastKnownPosition.y - fish.transient.position.y;
+        return { position: { ...contact.lastKnownPosition }, distance: Math.hypot(dx, dy), id: targetId, remembered: true };
+      }
+
       return null;
     }
 

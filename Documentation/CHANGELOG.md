@@ -103,3 +103,6 @@ ull por defecto; deriveFishStats expone chaseSpeed/ActivationDistance/MaxDuratio
 - FishAIController: transición APPROACH_PREY->CHASE solo con hambre/config válida y distancia <= activationDistance; mantiene target, usa última posición conocida por recovery visual; no reinicia max chase timer al recuperar visión; termina por presa inválida/recovery expirada/maxDuration; evasión interrumpe; prioridades protegidas.
 - Validación: 
 pm run build OK; checks Node para inactividad con null, activación con config válida, velocidad solo CHASE, continuidad con last known, no reset timer al recuperar visión, expiración recovery/maxDuration, evasión interrumpe.
+
+## 2026-11-27 - Corrección puntual Instrucción 07 (CHASE)
+- FishAIController: CHASE cuenta como búsqueda para supervivencia (isSeekingFood incluye CHASE). getPreyTargetInfo con preferredId sigue el mismo target visible/prey válido, actualiza última posición; no cambia a presa más cercana durante seguimiento activo; usa recovery visual si pierde visión.

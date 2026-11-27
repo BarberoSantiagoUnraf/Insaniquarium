@@ -1020,3 +1020,50 @@ Comprobar:
 - No realizar commit ni push sin autorización.
 - No avanzar a la siguiente instrucción.
 - [x] Instrucción 07 - Persecución acelerada (CHASE): transición desde APPROACH_PREY con config chase válida, hambre activa y presa compatible; chaseSpeed solo en CHASE; última posición conocida; no reinicia max timer al recuperar visión; evasión/prioridades respetadas. Parámetros chase en null por defecto.
+# Corrección puntual — Instrucción 07: Persecución acelerada (CHASE)
+
+Corregir los dos problemas detectados en la revisión del commit `b40767f`, sin modificar el alcance de la Instrucción 07.
+
+## 1. Contabilizar CHASE como búsqueda de alimento
+
+En `FishAIController.update()`, incluir `BEHAVIOR_STATES.CHASE` en la condición que determina `isSeekingFood` al actualizar `HungerSystem`.
+
+El temporizador de supervivencia debe continuar avanzando mientras el pez esté hambriento y buscando alimento mediante `SEEK_FOOD`, `APPROACH_PREY` o `CHASE`.
+
+No modificar el funcionamiento de los temporizadores ni sus parámetros.
+
+## 2. Mantener correctamente la presa seleccionada
+
+En `FishAIController.getPreyTargetInfo()`:
+
+- Cuando se proporciona un `preferredId`, buscar específicamente ese pez entre los contactos visibles.
+- Comprobar que el contacto sigue siendo de categoría `PREY`.
+- Validar que el pez continúa existiendo y que `canConsumeFish()` sigue permitiendo consumirlo.
+- Actualizar su última posición conocida cuando continúe visible.
+- Si no está visible, conservar el mecanismo actual de recuperación visual.
+- No sustituir automáticamente el objetivo seleccionado por otra presa visible.
+
+La selección de una nueva presa debe seguir correspondiendo a la lógica existente de adquisición de objetivos, no al seguimiento de una persecución activa.
+
+## 3. Restricciones
+
+- No modificar los parámetros de persecución.
+- No introducir valores de balance.
+- No implementar CHARGE, ataque ni consumo de peces.
+- No modificar las reglas de dieta, visión o evasión.
+- No refactorizar sistemas ajenos a estos dos problemas.
+
+## 4. Validación
+
+Comprobar:
+
+1. El temporizador de supervivencia avanza durante CHASE cuando corresponde.
+2. Una persecución mantiene su objetivo aunque aparezca otra presa más cercana.
+3. La última posición conocida sigue funcionando cuando se pierde visión.
+4. La persecución termina si el objetivo deja de ser válido o expira la recuperación visual.
+5. La aproximación, alimentación básica y evasión no presentan regresiones.
+
+Ejecutar `npm run build` y las comprobaciones disponibles. Informar los resultados reales.
+
+No realizar commit ni push sin autorización. No comenzar la siguiente instrucción.
+- [x] Corrección puntual Instrucción 07: CHASE cuenta para supervivencia; persecución mantiene preferredId y no cambia a presa más cercana.
