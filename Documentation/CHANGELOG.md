@@ -78,3 +78,8 @@ pm run build; scripts Node para activación, duración por escala, continuidad s
 - FishAIController/MovementController: integra SEEK_FOOD con prioridad existente (EVADE>SURRENDER>COMFORT>...>SEEK_FOOD>ROAM), usa última posición conocida por recuperación visual, y vuelve a ROAM al no poder buscar.
 - GameScene: instancia Hunger/Feeding systems y pasa oods al AI controller. Validación: 
 pm run build OK; checks Node para inactividad por null, consumo único, supervivencia solo en SEEK_FOOD, sin búsqueda con config inválida.
+
+## 2026-11-27 - Corrección puntual Instrucción 05
+- FishAIController.updateBehaviorState: no sobrescribe EVADE/SURRENDER/COMFORT/CHARGE/CHASE/APPROACH_PREY; SEEK_FOOD solo si corresponde y sin prioridad mayor; vuelve a ROAM solo desde SEEK_FOOD.
+- HungerSystem: al llegar hambre a 0, reinicia hungerTimer para no acumular descuento pendiente; recuperación aplica intervalo completo.
+- FeedingSystem: delega recuperación en HungerSystem.recover(); no elimina/destruye alimento si recover falla; sin mutación directa de hambre.

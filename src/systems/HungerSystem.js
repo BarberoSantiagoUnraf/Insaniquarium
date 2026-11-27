@@ -37,6 +37,10 @@ export default class HungerSystem {
       fish.transient.hunger = Math.max(0, fish.transient.hunger - 1);
       fish.transient.hungerTimer -= decayInterval;
     }
+    if (fish.transient.hunger <= 0) {
+      fish.transient.hunger = 0;
+      fish.transient.hungerTimer = 0;
+    }
 
     fish.transient.isHungry = seekActive ? fish.transient.hunger <= seekThreshold : false;
 

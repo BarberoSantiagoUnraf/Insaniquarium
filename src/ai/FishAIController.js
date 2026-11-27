@@ -74,7 +74,7 @@ export default class FishAIController {
       const fish = entry.fish;
       this.updateEvasionState(entry, delta);
 
-      this.updateBehaviorState(fish, foods);
+      this.updateBehaviorState(fish);
       if (this.hungerSystem) {
         this.hungerSystem.update(fish, delta, {
           isSeekingFood: fish.transient.behaviorState === BEHAVIOR_STATES.SEEK_FOOD,
@@ -107,18 +107,32 @@ export default class FishAIController {
     }
   }
 
-  updateBehaviorState(fish, foods) {
-    if (fish.transient.behaviorState === BEHAVIOR_STATES.EVADE) {
+  updateBehaviorState(fish) {
+    const state = fish.transient.behaviorState;
+    const protectedStates = new Set([
+      BEHAVIOR_STATES.EVADE,
+      BEHAVIOR_STATES.SURRENDER,
+      BEHAVIOR_STATES.COMFORT,
+      BEHAVIOR_STATES.CHARGE,
+      BEHAVIOR_STATES.CHASE,
+      BEHAVIOR_STATES.APPROACH_PREY,
+    ]);
+
+    if (protectedStates.has(state)) {
       return;
     }
+
     if (this.canSeekFood(fish)) {
       fish.transient.behaviorState = BEHAVIOR_STATES.SEEK_FOOD;
       fish.transient.isSeekingFood = true;
       return;
     }
-    this.clearFeedingTarget(fish);
-    fish.transient.isSeekingFood = false;
-    fish.transient.behaviorState = BEHAVIOR_STATES.ROAM;
+
+    if (state === BEHAVIOR_STATES.SEEK_FOOD) {
+      this.clearFeedingTarget(fish);
+      fish.transient.isSeekingFood = false;
+      fish.transient.behaviorState = BEHAVIOR_STATES.ROAM;
+    }
   }
 
   canSeekFood(fish) {
@@ -128,10 +142,6 @@ export default class FishAIController {
       && isValidNumber(stats.hungerSeekThreshold)
       && isPositiveNumber(stats.hungerRecoveryAmount);
     if (!hungerActive) return false;
-    if (fish.transient.behaviorState === BEHAVIOR_STATES.SURRENDER
-      || fish.transient.behaviorState === BEHAVIOR_STATES.COMFORT) {
-      return false;
-    }
     if (isValidNumber(fish.transient.hunger) && fish.transient.hunger <= stats.hungerSeekThreshold) {
       return true;
     }
@@ -169,11 +179,12 @@ export default class FishAIController {
 
   tryConsumeFood(fish, foods) {
     if (!this.feedingSystem || !this.hungerSystem) return;
-    const result = this.feedingSystem.tryConsume(fish, foods);
+    const result = this.feedingSystem.tryConsume(fish, foods, this.hungerSystem);
     if (result.consumed) {
       this.clearFeedingTarget(fish);
-      if (!this.canSeekFood(fish)) {
+      if (fish.transient.behaviorState === BEHAVIOR_STATES.SEEK_FOOD && !this.canSeekFood(fish)) {
         fish.transient.behaviorState = BEHAVIOR_STATES.ROAM;
+        fish.transient.isSeekingFood = false;
       }
     }
   }

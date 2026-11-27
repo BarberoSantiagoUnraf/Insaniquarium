@@ -20,15 +20,9 @@ export default class FeedingSystem {
     return selected;
   }
 
-  tryConsume(fish, foods) {
+  tryConsume(fish, foods, hungerSystem) {
     if (!canConsumeBaseFood(fish)) {
       return { consumed: false, reason: 'incompatible' };
-    }
-    const recoveryAmount = fish.stats?.hungerRecoveryAmount;
-    const hungerMax = fish.stats?.hungerMax;
-    if (!(typeof recoveryAmount === 'number' && Number.isFinite(recoveryAmount) && recoveryAmount > 0)
-      || !(typeof hungerMax === 'number' && Number.isFinite(hungerMax) && hungerMax > 0)) {
-      return { consumed: false, reason: 'hunger-config-inactive' };
     }
 
     const target = this.findConsumableTarget(fish);
@@ -44,12 +38,12 @@ export default class FeedingSystem {
       return { consumed: false, reason: 'missing-food' };
     }
 
+    if (!hungerSystem || !hungerSystem.recover(fish)) {
+      return { consumed: false, reason: 'hunger-recover-failed' };
+    }
+
     const [food] = foods.splice(foodIndex, 1);
     food.shape?.destroy();
-    const current = typeof fish.transient.hunger === 'number' && Number.isFinite(fish.transient.hunger)
-      ? fish.transient.hunger
-      : hungerMax;
-    fish.transient.hunger = Math.min(hungerMax, Math.max(0, current + recoveryAmount));
     fish.transient.feeding.targetId = null;
     fish.transient.feeding.targetLastPosition = null;
     return { consumed: true, food };

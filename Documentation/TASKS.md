@@ -630,3 +630,108 @@ Al terminar:
 
 **Criterio principal:** dejar implementada la infraestructura de hambre y alimentación básica, preparada para activarse cuando definamos los parámetros pendientes, sin introducir decisiones de diseño o balance por cuenta propia.
 - [x] Instrucción 05 - Hambre y alimentación básica: HungerSystem/FeedingSystem/SEEK_FOOD integrados; inactivos sin parámetros válidos; consumo único; supervivencia solo hambriento+SEEK_FOOD; sin muerte/balance.
+# Corrección puntual — Instrucción 05: Hambre y alimentación básica
+
+Corregir los problemas detectados durante la revisión del commit `78a7e9022868a57bb877a2818088bec01a2750ea`.
+
+No rehacer los sistemas ni ampliar el alcance. Mantener las decisiones y la arquitectura ya aprobadas.
+
+## 1. Preservar las prioridades de comportamiento
+
+Archivo: `src/ai/FishAIController.js`
+
+Corregir `updateBehaviorState()` para que la búsqueda de alimento no sobrescriba estados de mayor prioridad.
+
+Debe respetar el orden acordado:
+
+`EVADE > SURRENDER > COMFORT > CHARGE > CHASE > APPROACH_PREY > SEEK_FOOD > ROAM`
+
+Requisitos:
+
+- No modificar `EVADE`, `SURRENDER` ni `COMFORT`.
+- No sobrescribir `CHARGE`, `CHASE` ni `APPROACH_PREY`, aunque sus comportamientos todavía no estén implementados.
+- Activar `SEEK_FOOD` únicamente cuando corresponda por hambre y configuración válida, y ningún estado de mayor prioridad esté activo.
+- Volver a `ROAM` solamente cuando el estado actual sea `SEEK_FOOD` y ya no corresponda mantenerlo.
+- No alterar las prioridades ni introducir estados nuevos.
+
+Revisar también el flujo de actualización posterior a `updateBehaviorState()`: ningún bloque debe reemplazar accidentalmente un estado protegido.
+
+## 2. Corregir el temporizador de hambre
+
+Archivo: `src/systems/HungerSystem.js`
+
+Actualmente, cuando el hambre llega a cero, `hungerTimer` puede conservar tiempo acumulado. Al recuperar hambre, ese tiempo puede provocar descuentos inmediatos incorrectos.
+
+Corregir el comportamiento para que:
+
+- El temporizador no acumule tiempo de descuento mientras el hambre permanece en cero.
+- Al llegar a cero, no conserve intervalos pendientes que puedan aplicarse después de una recuperación.
+- Al recuperar hambre, el siguiente descuento respete un intervalo nuevo y completo.
+- El comportamiento siga utilizando `delta` y `hungerDecayInterval`.
+- No se alteren los valores de configuración ni la velocidad de disminución del hambre.
+
+Mantener independiente el temporizador de supervivencia.
+
+## 3. Centralizar la recuperación de hambre
+
+Archivos:
+- `src/systems/FeedingSystem.js`
+- `src/systems/HungerSystem.js`
+- `src/ai/FishAIController.js`
+
+Actualmente, `FeedingSystem` modifica directamente `fish.transient.hunger`, duplicando una responsabilidad que pertenece a `HungerSystem`.
+
+Corregir la integración:
+
+- `HungerSystem` debe ser responsable de modificar el nivel de hambre.
+- Utilizar `HungerSystem.recover()` o adaptar su interfaz si es estrictamente necesario.
+- `FeedingSystem` debe validar el alimento, la compatibilidad y la distancia de consumo.
+- No retirar el alimento de `foods` ni destruir su representación hasta confirmar que la recuperación de hambre puede realizarse correctamente.
+- Si la recuperación falla, el alimento debe permanecer disponible.
+- Si tiene éxito, retirar el alimento una sola vez y limpiar el objetivo de alimentación.
+- Evitar duplicar la fórmula de recuperación en distintos sistemas.
+
+No modificar la cantidad de recuperación ni inventar valores.
+
+## 4. Compatibilidad y alcance
+
+Mantener:
+
+- Los parámetros de hambre y supervivencia sin valores configurados en `null`.
+- La búsqueda inactiva cuando falten parámetros válidos.
+- La dieta definida mediante `canConsumeBaseFood`.
+- La percepción y recuperación visual existentes.
+- La evasión y el movimiento habitual.
+- El consumo exclusivo de alimento base.
+
+No implementar caza, crecimiento, muerte por hambre, nuevos estados ni valores de balance.
+
+## 5. Validación obligatoria
+
+Comprobar específicamente:
+
+1. `SURRENDER` y `COMFORT` no son reemplazados por `ROAM` ni `SEEK_FOOD`.
+2. `CHARGE`, `CHASE` y `APPROACH_PREY` tampoco son sobrescritos.
+3. `SEEK_FOOD` se activa cuando corresponde y vuelve a `ROAM` cuando deja de corresponder.
+4. El temporizador de hambre no acumula tiempo mientras el hambre está en cero.
+5. Después de recuperar hambre, no se aplican descuentos inmediatos por intervalos anteriores.
+6. `FeedingSystem` no modifica directamente el nivel de hambre.
+7. Si `HungerSystem.recover()` falla, el alimento no se elimina.
+8. Un alimento consumido correctamente se elimina una sola vez.
+9. Los parámetros `null` siguen dejando inactivo el sistema.
+10. Evasión y movimiento habitual siguen funcionando sin regresiones.
+
+Ejecutar `npm run build` y las comprobaciones disponibles. Si no existen pruebas automatizadas, crear comprobaciones puntuales con scripts Node sin incorporar dependencias innecesarias.
+
+## 6. Entrega
+
+Informar:
+- Archivos modificados.
+- Correcciones realizadas.
+- Resultados de las comprobaciones.
+- Resultado del build.
+
+No realizar commit ni push sin autorización. No comenzar otra tarea.
+
+**Objetivo:** corregir exclusivamente los tres defectos identificados y dejar la Instrucción 05 lista para una nueva revisión.
+- [x] Corrección puntual Instrucción 05: prioridades protegidas, hungerTimer reseteado en 0, recuperación centralizada en HungerSystem y consumo seguro.
