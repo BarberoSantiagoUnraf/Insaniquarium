@@ -106,3 +106,11 @@ pm run build OK; checks Node para inactividad con null, activación con config v
 
 ## 2026-11-27 - Corrección puntual Instrucción 07 (CHASE)
 - FishAIController: CHASE cuenta como búsqueda para supervivencia (isSeekingFood incluye CHASE). getPreyTargetInfo con preferredId sigue el mismo target visible/prey válido, actualiza última posición; no cambia a presa más cercana durante seguimiento activo; usa recovery visual si pierde visión.
+
+## 2026-11-27 - Instrucción 08: Embestida (CHARGE)
+- ishConfig: agrega config charge por especie (mojarrita null, dientudo 1.8/1300/3000, surubí 2.0/1500/3500); stats derivados chargeSpeed, chargeMaxDuration, chargeCooldown (cooldown no escala).
+- ishData: agrega 	ransient.charge (active,timer,duration,targetId,cooldownTimer).
+- MovementController: agrega updateCharge/getChargeSpeed con velocidad derivada de charge.
+- FishAIController: transición CHASE->CHARGE con hambre/config/cooldown/presa válida y distancia <= isionRange/3; conserva presa, usa última posición conocida, no reinicia max timer al recuperar visión, captura por suma de radios, consume una vez vía EntityManager.removeFish, recupera hambre por HungerSystem.recover, cooldown también al interrumpir por EVADE; post-caza retorna a APPROACH_PREY/SEEK_FOOD/ROAM. Supervivencia cuenta CHARGE como búsqueda.
+- EntityManager: agrega emoveFish; GameScene cablea entityManager al AI y poda referencias destruidas.
+- Validación: cmd /c npm run build OK; checks Node para derivación de stats, activación CHARGE en umbral, consumo único + recuperación + cooldown.

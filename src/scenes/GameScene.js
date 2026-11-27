@@ -39,6 +39,7 @@ export default class GameScene extends Phaser.Scene {
       movementController: this.movementController,
       hungerSystem: this.hungerSystem,
       feedingSystem: this.feedingSystem,
+      entityManager: this.entities,
     });
     this.aiDependencies = createAiDependencies(this.entities);
     this.aiDependencies.movementController = this.movementController;
@@ -123,6 +124,7 @@ export default class GameScene extends Phaser.Scene {
       foods: this.foods,
       fishes: this.entities.fishes,
     });
+    this.pruneDestroyedFishReferences();
 
     for (let index = this.foods.length - 1; index >= 0; index -= 1) {
       const food = this.foods[index];
@@ -239,6 +241,16 @@ export default class GameScene extends Phaser.Scene {
 
     this.scene.launch(SCENE_KEYS.PAUSE);
     this.scene.pause();
+  }
+
+  pruneDestroyedFishReferences() {
+    for (const fish of [...this.entities.fishes]) {
+      const shape = fish.references.shape;
+      if (shape && !shape.active) {
+        this.entities.removeFish(fish.persistent.id);
+        this.movementController.unregisterFish(fish.persistent.id);
+      }
+    }
   }
 
   cleanup() {

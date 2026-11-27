@@ -26,6 +26,17 @@ export default class EntityManager {
     return this.fishes.find((fish) => fish.references.shape === shape) ?? null;
   }
 
+  removeFish(id) {
+    const index = this.fishes.findIndex((fish) => fish.persistent.id === id);
+    if (index < 0) {
+      return null;
+    }
+    const [fish] = this.fishes.splice(index, 1);
+    fish.references.shape?.destroy?.();
+    fish.references.shape = null;
+    return fish;
+  }
+
   clear() {
     this.fishes.length = 0;
   }

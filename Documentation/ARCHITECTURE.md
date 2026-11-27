@@ -20,7 +20,7 @@
 - `src/config/constants.js`: constantes de escenas, texturas, herramientas, economía y reglas de peces.
 - `src/config/fishConfig.js`: configuración por especie y fórmulas centralizadas de parámetros derivados.
 - `src/entities/fishData.js`: datos persistentes, temporales y referencias de cada pez.
-- `src/entities/EntityManager.js`: registro, ids únicos y consulta de peces activos.
+- `src/entities/EntityManager.js`: registro, ids únicos, consulta y eliminación segura de peces activos.
 - `src/ai/FishAIController.js`: coordina comportamiento individual; hoy ejecuta ROAM delegando en movimiento.
 - `src/ai/VisionSystem.js`: percepción visual, clasificación de contactos y recuperación visual.
 - `src/ai/visionTypes.js`: categorías de visión y constantes del campo visual.
@@ -50,7 +50,7 @@
 - Los cuatro estadios son larva, juvenil, adulto y viejo; `baseWeightByStage` contempla los cuatro con valores provisionales, sin lógica de crecimiento.
 - La evasión tiene la prioridad más alta entre los estados de comportamiento.
 - La escala individual se aplica al `displaySize`; HUD y economía no se modificaron.
-- `MovementController` administra rumbo, velocidad, colisiones simples, evasión, `SEEK_FOOD`, `APPROACH_PREY` y `CHASE` (velocidad de chase solo en estado CHASE); `FishAIController` prioriza `EVADE` y delega hambre/consumo a sistemas dedicados.
+- `MovementController` administra rumbo, velocidad, colisiones simples, evasión, `SEEK_FOOD`, `APPROACH_PREY`, `CHASE` y `CHARGE`; `FishAIController` prioriza `EVADE`, orquesta transiciones de caza, cooldown de charge y consumo seguro de presas vía `EntityManager`; `HungerSystem` recupera hambre.
 - `VisionSystem` no cambia estado/movimiento: solo registra contactos visibles, última posición conocida y `recoveryTimer` independiente por contacto.
 - La visión usa un cono de 270° orientado a la cabeza (`transient.orientation`: derecha/izquierda). La representación actual solo soporta orientación horizontal; no se infiere rotación vertical. Alcance `visionRange * scale`.
 - Heading y orientación visual están desacoplados: el movimiento actualiza posición/rumbo; la orientación solo cambia por operaciones explícitas de facing (`setFacingOrientation`/actualización desde heading objetivo), no por el desplazamiento. Retroceder conserva orientación.

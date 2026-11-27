@@ -11,6 +11,7 @@
 - Colocación de alimento con clic dentro del área de juego y ciclo de caída, espera de 4 segundos y desaparición.
 - Generación de mojarritas y surubíes por clic.
 - Movimiento habitual de peces: desplazamiento continuo, rumbo aleatorio por intervalos configurables por especie, variación progresiva de rumbo, fluctuación moderada de velocidad, cambio inmediato hacia el centro al tocar bordes y evitación simple de obstáculos fijos.
+- Cadena de caza: `APPROACH_PREY -> CHASE -> CHARGE`; CHARGE activo desde CHASE con distancia `visionRange/3`, conserva presa, usa recuperación visual, consume presa válida una vez vía `EntityManager`, aplica cooldown e integra recuperación de hambre.
 - Sistema de visión por pez: cono 270° (90° ciego posterior) orientado a la cabeza, alcance efectivo isionRange * scale, clasificación de alimento/presa/amenaza/compañero, última posición conocida y temporizador independiente de recuperación visual.
 - Estructura común de datos de peces con identificador, especie, etapa, escala e instinto individuales, separando datos persistentes, temporales y referencias.
 - Registro de todos los peces en EntityManager, incluido el surubí inicial.
@@ -30,7 +31,8 @@ ull y valores provisionales identificados.
 
 - 
 pm run build ejecutado correctamente.
-- Verificación por script Node: detección de presa/alimento en cono frontal, pérdida de contacto conserva última posición y ecoveryTimer, contacto expira al vencer temporizador.
+- Verificación por script Node: detección de presa/alimento en cono frontal, pérdida de contacto conserva última posición y 
+ecoveryTimer, contacto expira al vencer temporizador.
 - Verificación por cálculo: velocidad habitual derivada inversamente proporcional a la escala (mojarrita scale 1.3 -> 47.69, scale 0.7 -> 88.57).
 
 ## Pendiente
@@ -39,7 +41,7 @@ pm run build ejecutado correctamente.
 - Implementar guardado real cuando exista el formato de partida.
 - Definir los valores definitivos de los parámetros de peces que hoy son provisionales o 
 ull.
-- Implementar alimentación, hambre/supervivencia, persecución, embestida, evasión, confort, rendición y crecimiento usando la percepción.
+- Implementar confort, rendición, crecimiento y balance usando la percepción; ajustar parámetros provisionales de hambre/chase/charge/evasión.
 - Incorporar obstáculos/decoraciones reales con hitboxes en el área de juego.
 - Ajustar valores provisionales de movimiento/visión tras pruebas visuales.
 

@@ -1020,6 +1020,7 @@ Comprobar:
 - No realizar commit ni push sin autorización.
 - No avanzar a la siguiente instrucción.
 - [x] Instrucción 07 - Persecución acelerada (CHASE): transición desde APPROACH_PREY con config chase válida, hambre activa y presa compatible; chaseSpeed solo en CHASE; última posición conocida; no reinicia max timer al recuperar visión; evasión/prioridades respetadas. Parámetros chase en null por defecto.
+
 # Corrección puntual — Instrucción 07: Persecución acelerada (CHASE)
 
 Corregir los dos problemas detectados en la revisión del commit `b40767f`, sin modificar el alcance de la Instrucción 07.
@@ -1067,3 +1068,209 @@ Ejecutar `npm run build` y las comprobaciones disponibles. Informar los resultad
 
 No realizar commit ni push sin autorización. No comenzar la siguiente instrucción.
 - [x] Corrección puntual Instrucción 07: CHASE cuenta para supervivencia; persecución mantiene preferredId y no cambia a presa más cercana.
+- [x] Instrucci�n 08 (CHARGE): embestida desde CHASE con config por especie, cooldown, consumo seguro de presa, interrupci�n por EVADE y retorno a APPROACH_PREY/SEEK_FOOD/ROAM.
+
+
+# Instrucción 08 — Implementación de embestida (CHARGE)
+
+## Objetivo
+
+Implementar el comportamiento `CHARGE` como etapa final de la secuencia de caza:
+
+`APPROACH_PREY → CHASE → CHARGE → CONSUMPTION`
+
+La embestida debe permitir que cualquier pez capaz de consumir otros peces realice un ataque rápido contra una presa compatible.
+
+Implementar el comportamiento completo, utilizando los sistemas existentes y respetando la arquitectura actual.
+
+## 1. Configuración por especie
+
+Agregar una configuración `charge` en `FISH_CONFIG`, siguiendo el formato de los parámetros existentes.
+
+Valores iniciales:
+
+| Especie | Speed Multiplier | Max Duration | Cooldown |
+|---|---:|---:|---:|
+| Mojarrita | null | null | null |
+| Dientudo | 1.8 | 1300 ms | 3000 ms |
+| Surubí | 2.0 | 1500 ms | 3500 ms |
+
+La mojarrita no puede consumir peces según la dieta actual, por lo que no debe tener una configuración activa de embestida.
+
+Reglas de derivación:
+
+- `chargeSpeed`: utilizar la misma fórmula de velocidad derivada que CHASE, aplicando el multiplicador sobre la velocidad habitual y respetando `Scale`.
+- `chargeMaxDuration`: duración base multiplicada por `Scale`, siguiendo el criterio de escalado de duraciones existentes.
+- `chargeCooldown`: mantenerlo independiente de `Scale`.
+- No modificar los parámetros actuales de CHASE, EVADE ni otros comportamientos.
+
+Los valores son provisionales y deben quedar centralizados en la configuración.
+
+## 2. Activación de CHARGE
+
+La embestida únicamente puede comenzar desde `CHASE`.
+
+Condiciones obligatorias:
+
+- El pez está en estado `CHASE`.
+- Tiene hambre y el sistema de hambre está configurado.
+- Tiene una presa identificada y válida.
+- La presa continúa siendo compatible según `canConsumeFish`.
+- El cooldown de CHARGE ha terminado.
+- La presa está a una distancia menor o igual a un tercio del rango de visión del depredador.
+
+Fórmula:
+
+`chargeActivationDistance = visionRange / 3`
+
+Utilizar el rango de visión derivado existente. No crear otro rango ni agregar un parámetro de distancia por especie.
+
+Al comenzar:
+
+- Cambiar el estado a `CHARGE`.
+- Conservar el ID de la presa seleccionada.
+- Inicializar el temporizador de embestida.
+- Activar el seguimiento de esa presa.
+- No seleccionar otra presa mientras la embestida esté activa.
+
+## 3. Movimiento de embestida
+
+Implementar `updateCharge` en `MovementController`.
+
+Características:
+
+- Utilizar `chargeSpeed`.
+- Mantener el movimiento dirigido hacia la presa.
+- Seguir su posición actual mientras sea visible.
+- Si pierde contacto, dirigirse hacia `lastKnownPosition` mediante el sistema de recuperación visual existente.
+- Si recupera contacto, continuar siguiendo a la misma presa.
+- No reiniciar el temporizador máximo al recuperar contacto.
+- Mantener las restricciones de límites y obstáculos existentes.
+
+No modificar la velocidad habitual ni los parámetros de otros estados.
+
+## 4. Captura y consumo
+
+Considerar que el depredador alcanzó a la presa cuando:
+
+`distance <= predatorRadius + preyRadius`
+
+Utilizar los radios efectivos de los cuerpos de ambos peces, respetando sus dimensiones actuales y evitando crear hitboxes duplicadas.
+
+Al alcanzar la presa:
+
+1. Volver a validar que el objetivo existe y es compatible mediante `canConsumeFish`.
+2. Consumir la presa inmediatamente.
+3. Retirar la entidad mediante el mecanismo de eliminación existente en `EntityManager`.
+4. Evitar que la presa pueda consumirse dos veces.
+5. Finalizar `CHARGE`.
+6. Aplicar la recuperación de hambre mediante `HungerSystem` si la configuración permite hacerlo.
+
+No permitir que el consumo de una presa dependa del éxito de la recuperación de hambre. La captura válida debe completarse una sola vez.
+
+No reutilizar `FeedingSystem` para consumir peces si ese sistema está limitado a alimento básico. Mantener separadas ambas responsabilidades.
+
+## 5. Finalización y cancelación
+
+CHARGE debe finalizar cuando ocurra cualquiera de estas condiciones:
+
+- El depredador alcanza y consume a la presa.
+- Se alcanza `chargeMaxDuration`.
+- Se pierde definitivamente el contacto y vence el tiempo de recuperación visual.
+- La presa deja de existir.
+- La presa deja de ser compatible según `canConsumeFish`.
+- Se activa `EVADE`.
+
+Al finalizar o cancelar:
+
+- Desactivar el estado de embestida.
+- Limpiar el temporizador y la referencia al objetivo.
+- Iniciar el `chargeCooldown`.
+
+El cooldown también debe aplicarse cuando EVADE interrumpe una embestida.
+
+## 6. Estado posterior
+
+Si la embestida termina sin consumir una presa:
+
+1. Buscar otra presa compatible y localizable.
+2. Si existe, pasar a `APPROACH_PREY`.
+3. Si no existe y el pez tiene hambre, pasar a `SEEK_FOOD`.
+4. Si no corresponde buscar alimento, pasar a `ROAM`.
+
+Si la presa fue consumida, aplicar la misma evaluación de hambre para decidir el siguiente estado.
+
+No permitir que CHARGE vuelva directamente a CHASE ni que se reinicie una embestida sin pasar por el cooldown.
+
+## 7. Prioridades
+
+Conservar la jerarquía establecida:
+
+`EVADE > SURRENDER > COMFORT > CHARGE > CHASE > APPROACH_PREY > SEEK_FOOD > ROAM`
+
+EVADE debe interrumpir inmediatamente CHARGE.
+
+Los estados de mayor prioridad deben seguir protegidos frente a transiciones de menor prioridad.
+
+El temporizador de supervivencia debe continuar avanzando durante CHARGE, al igual que durante SEEK_FOOD, APPROACH_PREY y CHASE.
+
+## 8. Responsabilidades
+
+Mantener separadas las responsabilidades:
+
+- `FishAIController`: activación, transiciones, temporizadores y condiciones de cancelación.
+- `MovementController`: movimiento acelerado y seguimiento de la presa.
+- `VisionSystem`: visibilidad, última posición conocida y recuperación visual.
+- `HungerSystem`: temporizadores y recuperación de hambre.
+- `EntityManager`: eliminación segura de la presa consumida.
+- `fishConfig.js`: parámetros por especie y valores derivados.
+
+Evitar duplicar lógica que ya exista en estos sistemas.
+
+## 9. Fuera de alcance
+
+No implementar:
+
+- Nuevas reglas de Instinct.
+- Nuevos comportamientos de evasión.
+- Cambios en la dieta.
+- Nuevas etapas de crecimiento.
+- Daño o puntos de vida.
+- Animaciones, efectos visuales o sonidos de embestida.
+- Cambios de balance en CHASE.
+- Cambios en la alimentación básica.
+- Nuevos sistemas de colisiones generales.
+- Cambios no relacionados con CHARGE.
+
+## 10. Validaciones obligatorias
+
+Comprobar:
+
+1. Una especie sin capacidad de consumir peces nunca activa CHARGE.
+2. Una especie compatible puede pasar de CHASE a CHARGE al alcanzar el umbral de un tercio del rango de visión.
+3. No puede iniciar CHARGE desde APPROACH_PREY.
+4. El movimiento utiliza el multiplicador configurado y respeta Scale.
+5. La presa seleccionada se conserva durante toda la embestida.
+6. La recuperación visual utiliza la última posición conocida.
+7. Recuperar contacto no reinicia el tiempo máximo.
+8. La captura utiliza la suma de los radios efectivos.
+9. Una presa compatible se consume exactamente una vez.
+10. Una presa incompatible nunca se consume.
+11. El tiempo máximo cancela correctamente la embestida.
+12. EVADE interrumpe inmediatamente CHARGE.
+13. El cooldown impide una nueva embestida antes de tiempo.
+14. La cancelación permite retomar APPROACH_PREY, SEEK_FOOD o ROAM según corresponda.
+15. El temporizador de supervivencia avanza durante CHARGE.
+16. No se producen regresiones en CHASE, APPROACH_PREY, SEEK_FOOD, EVADE ni ROAM.
+
+## 11. Entrega
+
+- Implementar únicamente el alcance indicado.
+- Actualizar `Documentation/TASKS.md` y `Documentation/CHANGELOG.md` siguiendo el formato existente.
+- Ejecutar `npm run build`.
+- Ejecutar las comprobaciones disponibles y documentar sus resultados.
+- Informar los archivos modificados, decisiones técnicas y limitaciones detectadas.
+- No afirmar que una prueba fue ejecutada si no se ejecutó realmente.
+- No crear commits ni realizar push sin autorización expresa.
+
+Al terminar, detenerse y esperar la revisión antes de avanzar a otra instrucción.

@@ -60,6 +60,10 @@ export default class MovementController {
     this.updateApproachTarget(entry, delta, targetPosition, this.getChaseSpeed(entry, delta));
   }
 
+  updateCharge(entry, delta, targetPosition) {
+    this.updateApproachTarget(entry, delta, targetPosition, this.getChargeSpeed(entry, delta));
+  }
+
   updateApproachTarget(entry, delta, targetPosition, speedOverride = null) {
     if (targetPosition) {
       const shape = entry.fish.references.shape;
@@ -85,6 +89,16 @@ export default class MovementController {
     const chaseSpeed = entry.fish.stats?.chaseSpeed;
     if (isFiniteNumber(chaseSpeed) && chaseSpeed > 0) {
       return Math.max(base, chaseSpeed);
+    }
+    return base;
+  }
+
+  getChargeSpeed(entry, delta) {
+    const base = this.getCurrentSpeed(entry, delta);
+    if (base === null) return null;
+    const chargeSpeed = entry.fish.stats?.chargeSpeed;
+    if (isFiniteNumber(chargeSpeed) && chargeSpeed > 0) {
+      return Math.max(base, chargeSpeed);
     }
     return base;
   }
