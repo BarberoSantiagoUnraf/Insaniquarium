@@ -292,3 +292,133 @@ Problemas encontrados o decisiones que requieran confirmación.
 
 No comenzar la siguiente instrucción automáticamente.
 - [x] Instrucción 03 - Sistema de visión: percepción con cono 270°, clasificación, última posición conocida y recuperación visual independiente.
+
+
+Tareas de corrección — Instrucción 03: Sistema de visión
+
+Objetivo
+
+Corregir los problemas detectados durante la revisión de la implementación del sistema de visión, sin rehacer los componentes que ya funcionan ni adelantar comportamientos que corresponden a instrucciones posteriores.
+
+1. Corregir la clasificación de peces según su dieta
+
+Eliminar la comparación de effectiveWeight como criterio para determinar relaciones de depredación.
+
+La clasificación debe basarse exclusivamente en la dieta de cada especie y su etapa de desarrollo.
+
+Dieta de la mojarrita
+
+Todas las etapas consumen únicamente alimento base.
+
+La mojarrita se considera presa durante toda su vida.
+
+Dieta del dientudo
+
+Larva: alimento base y mojarrita larva.
+
+Joven: alimento base y mojarrita hasta joven.
+
+Adulto: alimento base, mojarrita hasta vieja y surubí larva.
+
+Viejo: alimento base, mojarrita hasta vieja y surubí hasta joven.
+
+Dieta del surubí
+
+Larva: alimento base.
+
+Joven: mojarrita larva y dientudo larva.
+
+Adulto: mojarrita hasta joven y dientudo larva.
+
+Viejo: mojarrita hasta vieja y dientudo hasta joven.
+
+Regla: cuando se indica «hasta» una etapa, se incluyen todas las etapas anteriores.
+
+Criterios de clasificación visual
+
+PREY: el pez observado puede ser consumido por el pez que observa, según su dieta y etapa.
+
+THREAT: el pez observado puede consumir al pez que observa, según su dieta y etapa.
+
+COMPANION: pez de la misma especie.
+
+FOOD: alimento base.
+
+La clasificación debe consultar una única fuente de configuración de dietas, evitando duplicar reglas en VisionSystem.
+
+No utilizar el peso efectivo ni la escala individual para decidir relaciones depredador-presa.
+
+No implementar todavía el ataque, la persecución ni el consumo de presas.
+
+2. Corregir la orientación del campo visual
+
+Actualmente, getHeadAngle() solamente contempla orientación horizontal (izquierda o derecha).
+
+Revisar cómo se representa la orientación real de la cabeza del pez y determinar si el sistema puede obtener una dirección visual coherente con la representación actual.
+
+El campo visual debe seguir la orientación de la cabeza.
+
+No debe depender de la dirección de desplazamiento.
+
+Retroceder no debe modificar la orientación visual.
+
+Mantener el cono de 270° y el punto ciego posterior de 90°.
+
+Si la representación actual del pez solamente permite orientación horizontal, documentar esa limitación y no inventar una rotación visual que el sprite no representa.
+
+3. Corregir la documentación
+
+Revisar específicamente:
+
+Documentation/ARCHITECTURE.md
+
+Documentation/CHANGELOG.md
+
+Corregir los caracteres de escape y secuencias de control que hayan alterado el texto, especialmente en las secciones relacionadas con la implementación de visión.
+
+Comprobar que nombres de propiedades, rutas, fragmentos de código y términos técnicos se lean correctamente.
+
+No reemplazar documentación existente ni eliminar información válida.
+
+4. Revisar dependencias innecesarias
+
+Comprobar la dependencia de VisionSystem declarada en FishAIController.
+
+Actualmente, la visión se actualiza desde GameScene, por lo que hay que verificar si esa dependencia realmente se utiliza.
+
+Si no tiene una función efectiva, eliminarla y limpiar las referencias correspondientes. No modificar la arquitectura general por este motivo.
+
+Restricciones
+
+No rehacer el sistema de visión completo.
+
+No implementar evasión, alimentación, persecución, embestidas ni decisiones de comportamiento.
+
+No implementar movimiento adicional.
+
+No modificar el sistema de crecimiento.
+
+No agregar persistencia ni HUD.
+
+No introducir comparaciones de peso para determinar depredación.
+
+Reutilizar la configuración y las estructuras existentes siempre que sea posible.
+
+Verificación y entrega
+
+Al finalizar:
+
+Comprobar que las relaciones de presa y amenaza respeten las dietas y etapas.
+
+Verificar que ninguna presa sea clasificada incorrectamente por su peso.
+
+Comprobar la orientación del campo visual.
+
+Revisar que la documentación no contenga caracteres corruptos.
+
+Ejecutar las pruebas y compilación disponibles.
+
+Informar los archivos modificados, las correcciones realizadas y cualquier limitación pendiente.
+
+No comenzar una nueva instrucción de desarrollo al terminar.
+- [x] Correcciones Instrucción 03: dietas por especie/etapa en fuente única, sin peso para depredación; dependencia no usada de visión removida de FishAIController; documentación de orientación visual/limitación.

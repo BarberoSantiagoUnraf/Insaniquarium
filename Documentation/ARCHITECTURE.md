@@ -1,10 +1,10 @@
-﻿# Arquitectura
+# Arquitectura
 
 ## Stack
 
 - Phaser 3.90.0 fijado.
 - Vite 8.3.8 fijado.
-- JavaScript modular (	ype: module).
+- JavaScript modular ( ype: module).
 
 ## Estructura
 
@@ -33,7 +33,7 @@
 - El HUD es un componente independiente dentro de GameScene.
 - La pausa usa una escena paralela: GameScene se detiene y PauseScene mantiene la interfaz activa.
 - Los assets son texturas generadas en BootScene, reemplazables sin tocar las escenas.
-- UiButton.resize() devuelve 	his para permitir encadenar .setPosition().
+- UiButton.resize() devuelve  his para permitir encadenar .setPosition().
 - El hitArea de UiButton usa (0, 0, width, height) porque Phaser ya suma el displayOrigin del Container.
 - La selección de herramientas es exclusiva y se alterna al volver a pulsar el mismo botón.
 - Un Zone interactivo cubre solo el área debajo del HUD, por lo que los clics en el HUD no generan entidades.
@@ -43,18 +43,19 @@
 - El guardado no persiste datos todavía: saveGame devuelve un resultado sin guardar hasta configurar un handler.
 - El escalado usa Phaser.Scale.RESIZE; cada layout recalcula posiciones y tamaños.
 - Los peces se registran en EntityManager; el surubí inicial y los comprados comparten la misma estructura de datos.
-- Los datos del pez se dividen en persistent, 	ransient y eferences; las referencias a entidades no se consideran persistibles.
+- Los datos del pez se dividen en persistent,  ransient y eferences; las referencias a entidades no se consideran persistibles.
 - Los parámetros derivados se calculan con deriveFishStats() y se exponen como getter, sin duplicarlos en el pez.
 - La velocidad habitual y de Boost se derivan inversamente proporcionales a la escala individual.
 - Los parámetros no definidos quedan en 
 ull y los valores necesarios para inicializar están agrupados en PROVISIONAL_FISH_VALUES.
-- Los cuatro estadios son larva, juvenil, adulto y viejo; aseWeightByStage contempla los cuatro con valores provisionales, sin lógica de crecimiento.
+- Los cuatro estadios son larva, juvenil, adulto y viejo; aseWeightByStage contempla los cuatro con valores provisionales, sin lógica de crecimiento.
 - La evasión tiene la prioridad más alta entre los estados de comportamiento.
 - La escala individual se aplica al displaySize; HUD y economía no se modificaron.
 - MovementController administra rumbo, velocidad y colisiones simples; FishAIController solo decide ejecutar ROAM mientras no haya comportamientos prioritarios.
 - VisionSystem no cambia estado/movimiento: solo registra contactos visibles, última posición conocida y ecoveryTimer independiente por contacto.
-- La visión usa un cono de 270° orientado a 	ransient.orientation (cabeza), alcance isionRange * scale y clasificación alimento/presa/amenaza/compañero.
-- El movimiento usa valores provisionales por especie para velocidad e intervalo de rumbo, centralizados en ishConfig.js.
+- La visión usa un cono de 270° orientado a la cabeza ( ransient.orientation: derecha/izquierda). La representación actual solo soporta orientación horizontal; no se infiere rotación vertical. Alcance isionRange * scale.
+- La clasificación usa una única fuente de dietas en ishConfig.js (FISH_DIETS, canConsumeFish): presa/amenaza por dieta y etapa, compañero por misma especie, alimento base como ood. No usa peso/escala para depredación.
+- El movimiento usa valores provisionales por especie para velocidad e intervalo de rumbo, centralizados en ishConfig.js.
 
 ## Capas de renderizado
 
@@ -63,3 +64,4 @@ ull y los valores necesarios para inicializar están agrupados en PROVISIONAL_FI
 - Alimento: profundidad 20.
 - HUD: profundidad 100.
 - Menú de pausa: escena separada por encima de GameScene.
+

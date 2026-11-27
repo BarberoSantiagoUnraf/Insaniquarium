@@ -39,10 +39,19 @@ pm run build y cálculo de velocidad por escala.
 
 ## 2026-11-27 - Sistema de visión
 
-- Agregado VisionSystem con cono de 270° (90° ciego posterior), orientación por cabeza (	ransient.orientation), alcance efectivo isionRange * scale.
+- Agregado VisionSystem con cono de 270° (90° ciego posterior), orientación por cabeza ( ransient.orientation), alcance efectivo isionRange * scale.
 - Clasificación de contactos: alimento, presa, amenaza y compañero; sin decisiones de comportamiento ni cambios de movimiento.
 - Pérdida de contacto conserva lastKnownPosition e inicia ecoveryTimer independiente por contacto; al expirar se descarta.
-- ishData incorpora 	ransient.vision.contacts; ishConfig agrega isionRange y isualRecoveryTime provisionales por especie y expone isualRecoveryTime en stats.
+- ishData incorpora  ransient.vision.contacts; ishConfig agrega isionRange y isualRecoveryTime provisionales por especie y expone isualRecoveryTime en stats.
 - GameScene actualiza visión antes de la IA; alimentos reciben id estable para tracking.
 - Verificación: 
 pm run build y script Node para detección, pérdida y expiración de contacto.
+
+## 2026-11-27 - Correcciones visión (Instrucción 03)
+
+- Clasificación presa/amenaza basada en FISH_DIETS por especie y etapa (canConsumeFish), fuente única en ishConfig.js; eliminado uso de peso/escala para depredación.
+- Dietas implementadas según etapa: mojarrita solo alimento base/presa siempre; dientudo y surubí con tablas por etapa e inclusión "hasta" etapa indicada.
+- Orientación visual: se mantiene  ransient.orientation (horizontal izquierda/derecha) acorde a la representación actual; limitación documentada en arquitectura.
+- FishAIController ya no recibe dependencia no usada de VisionSystem; GameScene actualiza visión directamente.
+- Verificación: 
+pm run build y scripts Node para dietas/etapas y no-regresión por peso.

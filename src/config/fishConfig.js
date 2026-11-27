@@ -1,4 +1,4 @@
-import { GROWTH_STAGES, SPECIES } from './constants.js';
+﻿import { GROWTH_STAGES, SPECIES } from './constants.js';
 
 export const PROVISIONAL_FISH_VALUES = Object.freeze({
   BASE_WEIGHT_BY_STAGE: Object.freeze({
@@ -28,6 +28,95 @@ export const PROVISIONAL_FISH_VALUES = Object.freeze({
     [SPECIES.DIENTUDO]: 2500,
   }),
 });
+
+export const GROWTH_STAGE_ORDER = Object.freeze([
+  GROWTH_STAGES.LARV,
+  GROWTH_STAGES.JUVENILE,
+  GROWTH_STAGES.ADULT,
+  GROWTH_STAGES.OLD,
+]);
+
+function upToStage(maxStage) {
+  const maxIndex = GROWTH_STAGE_ORDER.indexOf(maxStage);
+  return Object.freeze(GROWTH_STAGE_ORDER.slice(0, maxIndex + 1));
+}
+
+export const FISH_DIETS = Object.freeze({
+  [SPECIES.MOJARRITA]: Object.freeze({
+    [GROWTH_STAGES.LARV]: Object.freeze({ baseFood: true, fish: Object.freeze([]) }),
+    [GROWTH_STAGES.JUVENILE]: Object.freeze({ baseFood: true, fish: Object.freeze([]) }),
+    [GROWTH_STAGES.ADULT]: Object.freeze({ baseFood: true, fish: Object.freeze([]) }),
+    [GROWTH_STAGES.OLD]: Object.freeze({ baseFood: true, fish: Object.freeze([]) }),
+  }),
+  [SPECIES.DIENTUDO]: Object.freeze({
+    [GROWTH_STAGES.LARV]: Object.freeze({
+      baseFood: true,
+      fish: Object.freeze([{ species: SPECIES.MOJARRITA, stages: upToStage(GROWTH_STAGES.LARV) }]),
+    }),
+    [GROWTH_STAGES.JUVENILE]: Object.freeze({
+      baseFood: true,
+      fish: Object.freeze([{ species: SPECIES.MOJARRITA, stages: upToStage(GROWTH_STAGES.JUVENILE) }]),
+    }),
+    [GROWTH_STAGES.ADULT]: Object.freeze({
+      baseFood: true,
+      fish: Object.freeze([
+        { species: SPECIES.MOJARRITA, stages: upToStage(GROWTH_STAGES.OLD) },
+        { species: SPECIES.SURUBI, stages: upToStage(GROWTH_STAGES.LARV) },
+      ]),
+    }),
+    [GROWTH_STAGES.OLD]: Object.freeze({
+      baseFood: true,
+      fish: Object.freeze([
+        { species: SPECIES.MOJARRITA, stages: upToStage(GROWTH_STAGES.OLD) },
+        { species: SPECIES.SURUBI, stages: upToStage(GROWTH_STAGES.JUVENILE) },
+      ]),
+    }),
+  }),
+  [SPECIES.SURUBI]: Object.freeze({
+    [GROWTH_STAGES.LARV]: Object.freeze({ baseFood: true, fish: Object.freeze([]) }),
+    [GROWTH_STAGES.JUVENILE]: Object.freeze({
+      baseFood: false,
+      fish: Object.freeze([
+        { species: SPECIES.MOJARRITA, stages: upToStage(GROWTH_STAGES.LARV) },
+        { species: SPECIES.DIENTUDO, stages: upToStage(GROWTH_STAGES.LARV) },
+      ]),
+    }),
+    [GROWTH_STAGES.ADULT]: Object.freeze({
+      baseFood: false,
+      fish: Object.freeze([
+        { species: SPECIES.MOJARRITA, stages: upToStage(GROWTH_STAGES.JUVENILE) },
+        { species: SPECIES.DIENTUDO, stages: upToStage(GROWTH_STAGES.LARV) },
+      ]),
+    }),
+    [GROWTH_STAGES.OLD]: Object.freeze({
+      baseFood: false,
+      fish: Object.freeze([
+        { species: SPECIES.MOJARRITA, stages: upToStage(GROWTH_STAGES.OLD) },
+        { species: SPECIES.DIENTUDO, stages: upToStage(GROWTH_STAGES.JUVENILE) },
+      ]),
+    }),
+  }),
+});
+
+export function canConsumeFish(observer, target) {
+  if (!observer || !target || observer.persistent.id === target.persistent.id) {
+    return false;
+  }
+
+  const diet = FISH_DIETS[observer.persistent.species]?.[observer.persistent.growthStage];
+  if (!diet) {
+    return false;
+  }
+
+  return diet.fish.some(
+    (entry) => entry.species === target.persistent.species && entry.stages.includes(target.persistent.growthStage),
+  );
+}
+
+export function canConsumeBaseFood(fish) {
+  const diet = FISH_DIETS[fish?.persistent?.species]?.[fish?.persistent?.growthStage];
+  return Boolean(diet?.baseFood);
+}
 
 function createSpeciesConfig(species) {
   return {

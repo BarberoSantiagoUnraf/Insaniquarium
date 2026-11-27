@@ -1,9 +1,8 @@
 import { BEHAVIOR_STATES } from './behaviorStates.js';
 
 export default class FishAIController {
-  constructor({ movementController, visionSystem } = {}) {
+  constructor({ movementController } = {}) {
     this.movementController = movementController;
-    this.visionSystem = visionSystem;
   }
 
   update(delta, bounds) {

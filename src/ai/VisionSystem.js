@@ -1,4 +1,4 @@
-﻿import { SPECIES } from '../config/constants.js';
+﻿import { canConsumeFish } from '../config/fishConfig.js';
 import { VISION_CATEGORIES, VISION_FIELD } from './visionTypes.js';
 
 function normalizeAngle(angle) {
@@ -33,19 +33,12 @@ function classifyFish(observer, target) {
   if (observer.persistent.species === target.persistent.species) {
     return VISION_CATEGORIES.COMPANION;
   }
-
-  const observerSpecies = observer.persistent.species;
-  const targetSpecies = target.persistent.species;
-  const observerWeight = observer.stats?.effectiveWeight ?? 0;
-  const targetWeight = target.stats?.effectiveWeight ?? 0;
-
-  if (observerSpecies === SPECIES.SURUBI && targetSpecies === SPECIES.MOJARRITA && observerWeight > targetWeight) {
+  if (canConsumeFish(observer, target)) {
     return VISION_CATEGORIES.PREY;
   }
-  if (observerSpecies === SPECIES.MOJARRITA && targetSpecies === SPECIES.SURUBI && targetWeight > observerWeight) {
+  if (canConsumeFish(target, observer)) {
     return VISION_CATEGORIES.THREAT;
   }
-
   return null;
 }
 

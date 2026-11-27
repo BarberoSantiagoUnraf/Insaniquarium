@@ -33,7 +33,6 @@ export default class GameScene extends Phaser.Scene {
     this.visionSystem = new VisionSystem();
     this.fishAiController = new FishAIController({
       movementController: this.movementController,
-      visionSystem: this.visionSystem,
     });
     this.aiDependencies = createAiDependencies(this.entities);
     this.aiDependencies.movementController = this.movementController;
