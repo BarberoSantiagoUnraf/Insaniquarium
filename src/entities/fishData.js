@@ -46,6 +46,10 @@ export function createFishData({ id, species, x, y }) {
         targetId: null,
         targetLastPosition: null,
       },
+      prey: {
+        targetId: null,
+        targetLastPosition: null,
+      },
     },
     references: {
       shape: null,

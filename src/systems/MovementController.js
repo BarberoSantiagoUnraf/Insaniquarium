@@ -45,6 +45,14 @@ export default class MovementController {
   }
 
   updateSeekFood(entry, delta, targetPosition) {
+    this.updateApproachTarget(entry, delta, targetPosition);
+  }
+
+  updateApproachPrey(entry, delta, targetPosition) {
+    this.updateApproachTarget(entry, delta, targetPosition);
+  }
+
+  updateApproachTarget(entry, delta, targetPosition) {
     if (targetPosition) {
       const shape = entry.fish.references.shape;
       const dx = targetPosition.x - shape.x;

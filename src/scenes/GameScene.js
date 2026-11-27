@@ -119,7 +119,10 @@ export default class GameScene extends Phaser.Scene {
       foods: this.foods,
       delta,
     });
-    this.fishAiController.update(delta, this.getArenaBounds(), { foods: this.foods });
+    this.fishAiController.update(delta, this.getArenaBounds(), {
+      foods: this.foods,
+      fishes: this.entities.fishes,
+    });
 
     for (let index = this.foods.length - 1; index >= 0; index -= 1) {
       const food = this.foods[index];

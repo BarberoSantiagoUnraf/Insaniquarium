@@ -87,3 +87,10 @@ pm run build OK; checks Node para inactividad por null, consumo único, superviv
 ## 2026-11-27 - Corrección puntual Instrucción 05 (timer/estado)
 - HungerSystem.recover: reinicia hungerTimer a 0 tras recuperación válida; no modifica survivalTimer.
 - FishAIController: al salir de SEEK_FOOD por ruta de ejecución, limpia isSeekingFood y objetivo de alimentación; mantiene estados de mayor prioridad protegidos.
+
+## 2026-11-27 - Instrucción 06: Detección y aproximación a presas
+- FishAIController: integra APPROACH_PREY con prioridades existentes. Selecciona presa PREY visible más cercana validada por canConsumeFish; solo con hambre/config válida. Usa última posición conocida por recovery de visión; abandona si inválida/expirada. Evasión interrumpe; estados mayores protegidos.
+- MovementController: agrega updateApproachPrey (velocidad habitual, sin boost/aceleración nueva) reutilizando aproximación por heading.
+- ishData: agrega 	ransient.prey.targetId/targetLastPosition. GameScene pasa ishes al AI controller.
+- Sin CHASE/CHARGE/ataque/consumo de peces. Validación: 
+pm run build OK; checks Node para selección cercana, inactividad sin hambre, uso de última posición, expiración recovery, evasión interrumpiendo.

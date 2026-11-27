@@ -792,3 +792,121 @@ Comprobar como mínimo:
 - Informar los archivos modificados y los resultados de las verificaciones.
 - No realizar commit ni push hasta recibir autorización.
 - [x] Corrección puntual Instrucción 05 (timer/estado): recover reinicia hungerTimer; salida de SEEK_FOOD limpia isSeekingFood y target.
+# Instrucción 06 — Detección y aproximación a presas
+
+## Objetivo
+
+Implementar la primera etapa del comportamiento de caza: permitir que los peces detecten presas compatibles con su dieta y se aproximen a ellas cuando corresponda.
+
+Respetar la arquitectura y las reglas existentes. No implementar todavía el ataque ni el consumo de otros peces.
+
+## 1. Antes de implementar
+
+Revisar:
+
+- `FishAIController`
+- `VisionSystem`
+- `MovementController`
+- `FeedingSystem`
+- `HungerSystem`
+- `fishConfig`
+- `behaviorStates`
+- `fishData`
+
+Reutilizar las reglas de dieta y percepción existentes. No duplicar sistemas ni crear una segunda clasificación de presas.
+
+## 2. Detección y selección de presas
+
+- Utilizar los contactos de `VisionSystem` clasificados como `PREY`.
+- Validar la compatibilidad mediante `canConsumeFish(observer, target)`.
+- No utilizar el peso efectivo para determinar si un pez puede consumir a otro.
+- Seleccionar la presa compatible más cercana entre los contactos visibles.
+- Ignorar peces incompatibles, al propio pez y contactos que ya no sean válidos.
+- No modificar las reglas de dieta existentes.
+
+La búsqueda de presas debe permanecer inactiva si el sistema de hambre no está configurado o el pez no tiene hambre.
+
+## 3. Aproximación
+
+Implementar el estado existente `APPROACH_PREY`.
+
+- Cuando corresponda buscar una presa, el pez debe aproximarse a la posición de la presa compatible seleccionada.
+- Utilizar el movimiento existente mediante `MovementController`.
+- Mantener la velocidad habitual durante esta etapa.
+- No introducir aceleraciones, velocidades nuevas ni valores de balance.
+- Si pierde contacto visual, utilizar la última posición conocida mediante el mecanismo de recuperación de `VisionSystem`.
+- Si la presa deja de ser válida o vence su recuperación visual, abandonar la aproximación y volver al comportamiento correspondiente.
+
+No modificar la orientación visual de manera que vuelva a quedar acoplada al rumbo de movimiento.
+
+## 4. Prioridades
+
+Respetar exactamente las prioridades existentes:
+
+`EVADE > SURRENDER > COMFORT > CHARGE > CHASE > APPROACH_PREY > SEEK_FOOD > ROAM`
+
+- La evasión debe interrumpir la aproximación.
+- La aproximación no debe sobrescribir estados de mayor prioridad.
+- No implementar todavía `CHASE` ni `CHARGE`.
+- No alterar las prioridades ni sus valores.
+
+## 5. Separación de responsabilidades
+
+Mantener:
+
+- `VisionSystem`: detección y seguimiento de contactos.
+- `fishConfig`: reglas de dieta y compatibilidad.
+- `FishAIController`: selección de presa y decisión de aproximarse.
+- `MovementController`: ejecución del movimiento.
+- `HungerSystem`: estado de hambre y temporizadores.
+- `FeedingSystem`: consumo de alimento base ya implementado.
+
+Evitar introducir dependencias circulares o trasladar reglas de dieta al controlador de IA.
+
+## 6. Fuera de alcance
+
+No implementar:
+
+- Ataque o embestida.
+- Persecución acelerada.
+- Consumo o eliminación de peces.
+- Muerte de presas.
+- Cambios de etapa o crecimiento.
+- Cardumen.
+- Confort o rendición.
+- Nuevos valores de balance.
+- Nuevas reglas de Instinct.
+- Cambios en evasión o visión que no sean estrictamente necesarios.
+
+Los parámetros de persecución que continúan en `null` deben permanecer sin configurar.
+
+## 7. Validación
+
+Comprobar como mínimo:
+
+1. Un pez detecta únicamente presas compatibles con su dieta.
+2. La selección prioriza la presa compatible más cercana.
+3. Los peces sin hambre no inician la aproximación.
+4. Los parámetros de hambre sin configurar mantienen inactiva la búsqueda.
+5. El pez se aproxima utilizando su velocidad habitual.
+6. La pérdida temporal de visión utiliza la última posición conocida.
+7. La aproximación termina cuando la presa deja de ser válida o vence la recuperación visual.
+8. La evasión interrumpe la aproximación.
+9. Ningún estado de mayor prioridad es sobrescrito.
+10. La alimentación base y el movimiento habitual siguen funcionando.
+
+Ejecutar `npm run build` y las comprobaciones disponibles. No afirmar que se realizaron pruebas que no se ejecutaron.
+
+## 8. Entrega
+
+Informar:
+
+- Archivos modificados.
+- Funcionamiento de la selección de presas.
+- Transiciones de comportamiento implementadas.
+- Resultados de las verificaciones.
+- Resultado del build.
+- Decisiones pendientes que hayan impedido implementar alguna parte.
+
+No realizar commit ni push sin autorización. No comenzar la siguiente instrucción.
+- [x] Instrucción 06 - Detección y aproximación a presas: APPROACH_PREY usa PREY visible más cercana validada por canConsumeFish, requiere hambre/config válida, velocidad habitual, última posición conocida por recovery; sin CHASE/CHARGE/ataque.

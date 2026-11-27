@@ -1,6 +1,6 @@
 ﻿import { BEHAVIOR_STATES } from './behaviorStates.js';
 import { VISION_CATEGORIES } from './visionTypes.js';
-import { PROVISIONAL_FISH_VALUES } from '../config/fishConfig.js';
+import { PROVISIONAL_FISH_VALUES, canConsumeFish } from '../config/fishConfig.js';
 
 function isValidNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
@@ -58,6 +58,24 @@ function getFoodTarget(fish) {
   return selected;
 }
 
+function getPreyTarget(fish, allFishes) {
+  const contacts = fish.transient.vision?.contacts;
+  if (!contacts) return null;
+  let selected = null;
+  for (const contact of contacts.values()) {
+    if (contact.type !== 'fish' || contact.category !== VISION_CATEGORIES.PREY) continue;
+    if (!contact.visible) continue;
+    const targetFish = allFishes.find((candidate) => candidate.persistent.id === contact.id);
+    if (!targetFish) continue;
+    if (!canConsumeFish(fish, targetFish)) continue;
+    const distance = contact.distance ?? Infinity;
+    if (!selected || distance < selected.distance) {
+      selected = contact;
+    }
+  }
+  return selected;
+}
+
 export default class FishAIController {
   constructor({ movementController, hungerSystem, feedingSystem } = {}) {
     this.movementController = movementController;
@@ -65,7 +83,7 @@ export default class FishAIController {
     this.feedingSystem = feedingSystem;
   }
 
-  update(delta, bounds, { foods = [] } = {}) {
+  update(delta, bounds, { foods = [], fishes = [] } = {}) {
     if (!this.movementController) {
       return;
     }
@@ -74,10 +92,11 @@ export default class FishAIController {
       const fish = entry.fish;
       this.updateEvasionState(entry, delta);
 
-      this.updateBehaviorState(fish);
+      this.updateBehaviorState(fish, fishes);
       if (this.hungerSystem) {
         this.hungerSystem.update(fish, delta, {
-          isSeekingFood: fish.transient.behaviorState === BEHAVIOR_STATES.SEEK_FOOD,
+          isSeekingFood: fish.transient.behaviorState === BEHAVIOR_STATES.SEEK_FOOD
+            || fish.transient.behaviorState === BEHAVIOR_STATES.APPROACH_PREY,
         });
       } else {
         fish.transient.isHungry = false;
@@ -87,6 +106,23 @@ export default class FishAIController {
       const state = fish.transient.behaviorState;
       if (state === BEHAVIOR_STATES.EVADE) {
         this.movementController.updateEvade(entry, delta);
+        continue;
+      }
+
+      if (state === BEHAVIOR_STATES.APPROACH_PREY) {
+        const targetPosition = this.getApproachPreyTargetPosition(fish, fishes);
+        if (!targetPosition || !this.canApproachPrey(fish)) {
+          this.clearPreyTarget(fish);
+          fish.transient.behaviorState = this.canSeekFood(fish) ? BEHAVIOR_STATES.SEEK_FOOD : BEHAVIOR_STATES.ROAM;
+          fish.transient.isSeekingFood = fish.transient.behaviorState === BEHAVIOR_STATES.SEEK_FOOD;
+          if (fish.transient.behaviorState === BEHAVIOR_STATES.ROAM) {
+            this.movementController.updateRoam(entry, delta);
+          } else {
+            this.movementController.updateSeekFood(entry, delta, this.getSeekFoodTargetPosition(fish));
+          }
+          continue;
+        }
+        this.movementController.updateApproachPrey(entry, delta, targetPosition);
         continue;
       }
 
@@ -108,7 +144,7 @@ export default class FishAIController {
     }
   }
 
-  updateBehaviorState(fish) {
+  updateBehaviorState(fish, fishes) {
     const state = fish.transient.behaviorState;
     const protectedStates = new Set([
       BEHAVIOR_STATES.EVADE,
@@ -116,37 +152,105 @@ export default class FishAIController {
       BEHAVIOR_STATES.COMFORT,
       BEHAVIOR_STATES.CHARGE,
       BEHAVIOR_STATES.CHASE,
-      BEHAVIOR_STATES.APPROACH_PREY,
     ]);
 
     if (protectedStates.has(state)) {
       return;
     }
 
+    if (state === BEHAVIOR_STATES.APPROACH_PREY) {
+      if (this.canApproachPrey(fish) && this.hasValidPreyTarget(fish, fishes)) {
+        fish.transient.isSeekingFood = true;
+        return;
+      }
+      this.clearPreyTarget(fish);
+    }
+
+    if (this.canApproachPrey(fish) && this.hasValidPreyTarget(fish, fishes)) {
+      this.clearFeedingTarget(fish);
+      fish.transient.behaviorState = BEHAVIOR_STATES.APPROACH_PREY;
+      fish.transient.isSeekingFood = true;
+      return;
+    }
+
     if (this.canSeekFood(fish)) {
+      this.clearPreyTarget(fish);
       fish.transient.behaviorState = BEHAVIOR_STATES.SEEK_FOOD;
       fish.transient.isSeekingFood = true;
       return;
     }
 
-    if (state === BEHAVIOR_STATES.SEEK_FOOD) {
+    if (state === BEHAVIOR_STATES.SEEK_FOOD || state === BEHAVIOR_STATES.APPROACH_PREY) {
       this.clearFeedingTarget(fish);
+      this.clearPreyTarget(fish);
       fish.transient.isSeekingFood = false;
       fish.transient.behaviorState = BEHAVIOR_STATES.ROAM;
     }
   }
 
-  canSeekFood(fish) {
+  isHungerConfigured(fish) {
     const stats = fish.stats ?? {};
-    const hungerActive = isPositiveNumber(stats.hungerMax)
+    return isPositiveNumber(stats.hungerMax)
       && isPositiveNumber(stats.hungerDecayInterval)
       && isValidNumber(stats.hungerSeekThreshold)
       && isPositiveNumber(stats.hungerRecoveryAmount);
-    if (!hungerActive) return false;
+  }
+
+  canSeekFood(fish) {
+    if (!this.isHungerConfigured(fish)) return false;
+    const stats = fish.stats ?? {};
     if (isValidNumber(fish.transient.hunger) && fish.transient.hunger <= stats.hungerSeekThreshold) {
       return true;
     }
     return fish.transient.isHungry === true;
+  }
+
+  canApproachPrey(fish) {
+    if (!this.isHungerConfigured(fish)) return false;
+    const stats = fish.stats ?? {};
+    if (isValidNumber(fish.transient.hunger) && fish.transient.hunger <= stats.hungerSeekThreshold) {
+      return true;
+    }
+    return fish.transient.isHungry === true;
+  }
+
+  hasValidPreyTarget(fish, fishes) {
+    return this.getApproachPreyTargetPosition(fish, fishes) !== null;
+  }
+
+  getApproachPreyTargetPosition(fish, fishes) {
+    const prey = fish.transient.prey ?? (fish.transient.prey = { targetId: null, targetLastPosition: null });
+    const target = getPreyTarget(fish, fishes);
+    if (target) {
+      prey.targetId = target.id;
+      prey.targetLastPosition = { ...target.position };
+      return target.position;
+    }
+
+    if (prey.targetId) {
+      const remembered = fish.transient.vision?.contacts?.get(`fish:${String(prey.targetId)}`);
+      if (remembered
+        && remembered.category === VISION_CATEGORIES.PREY
+        && remembered.recoveryTimer > 0
+        && remembered.lastKnownPosition) {
+        const targetFish = fishes.find((candidate) => candidate.persistent.id === prey.targetId);
+        if (targetFish && canConsumeFish(fish, targetFish)) {
+          prey.targetLastPosition = { ...remembered.lastKnownPosition };
+          return remembered.lastKnownPosition;
+        }
+      }
+    }
+
+    prey.targetId = null;
+    prey.targetLastPosition = null;
+    return null;
+  }
+
+  clearPreyTarget(fish) {
+    if (fish.transient.prey) {
+      fish.transient.prey.targetId = null;
+      fish.transient.prey.targetLastPosition = null;
+    }
   }
 
   getSeekFoodTargetPosition(fish) {
@@ -264,8 +368,17 @@ export default class FishAIController {
     evasion.boostActive = false;
     evasion.boostTimer = 0;
     evasion.boostCooldownTimer = 0;
-    fish.transient.behaviorState = this.canSeekFood(fish) ? BEHAVIOR_STATES.SEEK_FOOD : BEHAVIOR_STATES.ROAM;
-    fish.transient.isSeekingFood = fish.transient.behaviorState === BEHAVIOR_STATES.SEEK_FOOD;
+    const fishes = [...this.movementController.entries.values()].map((item) => item.fish);
+    if (this.canApproachPrey(fish) && this.hasValidPreyTarget(fish, fishes)) {
+      fish.transient.behaviorState = BEHAVIOR_STATES.APPROACH_PREY;
+      fish.transient.isSeekingFood = true;
+    } else if (this.canSeekFood(fish)) {
+      fish.transient.behaviorState = BEHAVIOR_STATES.SEEK_FOOD;
+      fish.transient.isSeekingFood = true;
+    } else {
+      fish.transient.behaviorState = BEHAVIOR_STATES.ROAM;
+      fish.transient.isSeekingFood = false;
+    }
     this.movementController.endEvade(entry);
   }
 }
