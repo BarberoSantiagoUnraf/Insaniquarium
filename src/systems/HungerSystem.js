@@ -67,6 +67,7 @@ export default class HungerSystem {
     const amount = fish.stats.hungerRecoveryAmount;
     const current = isValidNumber(fish.transient.hunger) ? fish.transient.hunger : max;
     fish.transient.hunger = Math.min(max, Math.max(0, current + amount));
+    fish.transient.hungerTimer = 0;
     return true;
   }
 }

@@ -735,3 +735,60 @@ No realizar commit ni push sin autorización. No comenzar otra tarea.
 
 **Objetivo:** corregir exclusivamente los tres defectos identificados y dejar la Instrucción 05 lista para una nueva revisión.
 - [x] Corrección puntual Instrucción 05: prioridades protegidas, hungerTimer reseteado en 0, recuperación centralizada en HungerSystem y consumo seguro.
+# Corrección puntual — Instrucción 05: temporizador de hambre y estado de búsqueda
+
+Realizar únicamente las dos correcciones pendientes detectadas durante la revisión del commit `ed3f909`.
+
+## 1. Reinicio del temporizador al recuperar hambre
+
+**Archivo:** `src/systems/HungerSystem.js`
+
+Modificar `recover(fish)` para que, cuando la recuperación sea válida y se aplique correctamente:
+
+- Actualice el hambre utilizando la fórmula existente.
+- Reinicie `fish.transient.hungerTimer` a `0`.
+- Garantice que el siguiente descenso de hambre ocurra después de completar un intervalo entero (`hungerDecayInterval`).
+- No reinicie ni modifique `survivalTimer` como consecuencia directa de la recuperación.
+
+Mantener las validaciones actuales de `canRecover()` y los límites de hambre.
+
+## 2. Limpieza del estado al abandonar la búsqueda
+
+**Archivo:** `src/ai/FishAIController.js`
+
+En la transición de `SEEK_FOOD` a `ROAM`:
+
+- Establecer `fish.transient.isSeekingFood = false`.
+- Limpiar el objetivo de alimentación mediante `clearFeedingTarget(fish)`.
+- Evitar modificar estados de mayor prioridad.
+- Mantener el comportamiento actual cuando el pez continúa buscando alimento.
+
+Revisar todas las rutas de salida de `SEEK_FOOD` para asegurar que no quede el indicador activo después de abandonar ese estado.
+
+## 3. Pruebas de verificación
+
+Comprobar como mínimo:
+
+1. Si un pez acumula parte de un intervalo de hambre y luego come, el temporizador vuelve a cero.
+2. Después de comer, el hambre no disminuye hasta completar un nuevo intervalo.
+3. Si el hambre llega a cero, el temporizador permanece en cero.
+4. La recuperación no modifica directamente el temporizador de supervivencia.
+5. Al pasar de `SEEK_FOOD` a `ROAM`, `isSeekingFood` queda en `false`.
+6. Al abandonar `SEEK_FOOD`, el objetivo de alimentación queda limpio.
+7. Los estados `EVADE`, `SURRENDER`, `COMFORT`, `CHARGE`, `CHASE` y `APPROACH_PREY` siguen protegidos.
+
+## 4. Restricciones
+
+- No modificar valores de configuración ni introducir parámetros nuevos.
+- No cambiar las fórmulas de hambre, recuperación o supervivencia.
+- No modificar `VisionSystem`, `MovementController`, evasión ni prioridades.
+- No implementar caza, crecimiento, muerte, cardumen ni otros comportamientos.
+- No reorganizar archivos ni refactorizar sistemas que no estén involucrados.
+- Mantener la arquitectura y responsabilidades actuales.
+
+## 5. Entrega
+
+- Ejecutar las pruebas disponibles y realizar una compilación si el proyecto lo permite.
+- Informar los archivos modificados y los resultados de las verificaciones.
+- No realizar commit ni push hasta recibir autorización.
+- [x] Corrección puntual Instrucción 05 (timer/estado): recover reinicia hungerTimer; salida de SEEK_FOOD limpia isSeekingFood y target.

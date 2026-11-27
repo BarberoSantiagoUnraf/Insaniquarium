@@ -83,3 +83,7 @@ pm run build OK; checks Node para inactividad por null, consumo único, superviv
 - FishAIController.updateBehaviorState: no sobrescribe EVADE/SURRENDER/COMFORT/CHARGE/CHASE/APPROACH_PREY; SEEK_FOOD solo si corresponde y sin prioridad mayor; vuelve a ROAM solo desde SEEK_FOOD.
 - HungerSystem: al llegar hambre a 0, reinicia hungerTimer para no acumular descuento pendiente; recuperación aplica intervalo completo.
 - FeedingSystem: delega recuperación en HungerSystem.recover(); no elimina/destruye alimento si recover falla; sin mutación directa de hambre.
+
+## 2026-11-27 - Corrección puntual Instrucción 05 (timer/estado)
+- HungerSystem.recover: reinicia hungerTimer a 0 tras recuperación válida; no modifica survivalTimer.
+- FishAIController: al salir de SEEK_FOOD por ruta de ejecución, limpia isSeekingFood y objetivo de alimentación; mantiene estados de mayor prioridad protegidos.

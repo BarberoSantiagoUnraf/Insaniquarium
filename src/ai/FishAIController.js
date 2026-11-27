@@ -94,8 +94,9 @@ export default class FishAIController {
         const targetPosition = this.getSeekFoodTargetPosition(fish);
         this.movementController.updateSeekFood(entry, delta, targetPosition);
         this.tryConsumeFood(fish, foods);
-        if (!this.canSeekFood(fish)) {
+        if (fish.transient.behaviorState === BEHAVIOR_STATES.SEEK_FOOD && !this.canSeekFood(fish)) {
           this.clearFeedingTarget(fish);
+          fish.transient.isSeekingFood = false;
           fish.transient.behaviorState = BEHAVIOR_STATES.ROAM;
         }
         continue;
