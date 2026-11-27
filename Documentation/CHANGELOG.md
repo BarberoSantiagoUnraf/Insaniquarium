@@ -59,3 +59,12 @@
 - Orientación desacoplada del movimiento: `MovementController.syncFish()` ya no calcula orientación desde `heading`; se agregó `setFacingOrientation()` y actualización explícita de facing desde heading objetivo al cambiar rumbo. Retroceder conserva orientación.
 - Alimento: `VisionSystem` usa `canConsumeBaseFood()`; contactos de comida incluyen `consumable` según dieta/etapa, sin duplicar reglas ni implementar consumo.
 - Verificación: `npm run build` y scripts Node para consumibilidad por especie/etapa y orientación independiente del movimiento.
+## 2026-11-27 - Instrucción 04: Sistema de evasión
+
+- FishAIController: activa evasión ante amenaza visible (VISION_CATEGORIES.THREAT) con comprobación de instinct (2-8, persistente). Regla Instinct->probabilidad pendiente (EVASION_INSTINCT_CHANCE = null); provisionalmente no se bloquea la activación y se reporta.
+- Prioridad: EVADE mantiene máxima prioridad; interrumpe ROAM. No se reinicia por detectar el mismo depredador; si la amenaza se pierde, continúa hasta agotar temporizador.
+- Duración: evadeDuration = EvasionDurationBase * Scale por especie (bases provisionales mojarrita 2500, surubí 3000, dientudo 2800 ms). Temporizador independiente de recuperación visual.
+- MovementController: updateEvade calcula rumbo opuesto a la amenaza, reacciona si amenaza está adelante/trayectoria (~60°), mantiene huida con última posición conocida; usa boost si oostSpeed disponible. Al finalizar no recupera rumbo anterior.
+- Orientación visual no cambia por evasión; respeta desacople heading/orientation.
+- Verificación: 
+pm run build; scripts Node para activación, duración por escala, continuidad sin visión, no-reinicio por redetección, boost activo y orientación preservada.

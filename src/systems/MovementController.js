@@ -1,4 +1,4 @@
-import { FISH_CONFIG } from '../config/fishConfig.js';
+﻿import { FISH_CONFIG } from '../config/fishConfig.js';
 
 export default class MovementController {
   constructor() {
@@ -20,6 +20,7 @@ export default class MovementController {
       directionElapsed: 0,
       speedOffset: 0,
       speedElapsed: 0,
+      evadeHeadingSet: false,
     };
 
     this.entries.set(fish.persistent.id, entry);
@@ -57,6 +58,86 @@ export default class MovementController {
     const speed = this.getCurrentSpeed(entry, delta);
     this.moveFish(entry, speed, delta);
     this.constrainToBounds(entry);
+  }
+
+  beginEvade(entry, threatPosition) {
+    entry.evadeHeadingSet = false;
+    this.setEvadeHeading(entry, threatPosition);
+  }
+
+  endEvade(entry) {
+    entry.evadeHeadingSet = false;
+    entry.directionElapsed = 0;
+    // No recuperar rumbo anterior: mantener heading actual; siguiente roam elegirá nuevo rumbo al vencer intervalo.
+  }
+
+  updateEvade(entry, delta) {
+    const threatPosition = entry.fish.transient.evasion?.threatLastPosition;
+    if (threatPosition) {
+      const shouldReact = this.isThreatAhead(entry, threatPosition) || !entry.evadeHeadingSet;
+      if (shouldReact) {
+        this.setEvadeHeading(entry, threatPosition);
+      }
+    }
+
+    this.updateHeading(entry, delta);
+    const speed = this.getEvadeSpeed(entry, delta);
+    this.moveFish(entry, speed, delta);
+    this.constrainToBounds(entry);
+  }
+
+  getEvadeSpeed(entry, delta) {
+    const base = this.getCurrentSpeed(entry, delta);
+    if (base === null) return null;
+    const fish = entry.fish;
+    const evasion = fish.transient.evasion;
+    if (evasion?.boostActive) {
+      const boostSpeed = fish.stats?.boostSpeed;
+      if (boostSpeed !== null && boostSpeed !== undefined) {
+        return Math.max(base, boostSpeed);
+      }
+    }
+    return base;
+  }
+
+  isThreatAhead(entry, threatPosition) {
+    const shape = entry.fish.references.shape;
+    const toThreatX = threatPosition.x - shape.x;
+    const toThreatY = threatPosition.y - shape.y;
+    const heading = entry.heading;
+    const dot = toThreatX * heading.x + toThreatY * heading.y;
+    if (dot <= 0) {
+      return false;
+    }
+    const threatLen = Math.hypot(toThreatX, toThreatY) || 1;
+    const headingLen = Math.hypot(heading.x, heading.y) || 1;
+    const cos = dot / (threatLen * headingLen);
+    return cos > Math.cos(Math.PI / 3);
+  }
+
+  setEvadeHeading(entry, threatPosition) {
+    const shape = entry.fish.references.shape;
+    const awayX = shape.x - threatPosition.x;
+    const awayY = shape.y - threatPosition.y;
+    const baseAngle = Math.atan2(awayY || (Math.random() - 0.5), awayX || (Math.random() - 0.5));
+
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const spread = Math.PI * 0.9;
+      const angle = baseAngle + (Math.random() - 0.5) * spread;
+      const candidate = { x: Math.cos(angle), y: Math.sin(angle) };
+      const probeX = shape.x + candidate.x * shape.displayWidth;
+      const probeY = shape.y + candidate.y * shape.displayHeight;
+      if (!this.findBlockingObstacle(entry, probeX, probeY) && this.isInsideBounds(entry, probeX, probeY)) {
+        entry.targetHeading = candidate;
+        entry.heading = { ...candidate };
+        entry.evadeHeadingSet = true;
+        entry.directionElapsed = 0;
+        return;
+      }
+    }
+
+    this.setHeadingTowardCenter(entry);
+    entry.evadeHeadingSet = true;
   }
 
   moveFish(entry, speed, delta) {

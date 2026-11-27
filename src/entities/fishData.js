@@ -30,6 +30,16 @@ export function createFishData({ id, species, x, y }) {
       vision: {
         contacts: new Map(),
       },
+      evasion: {
+        active: false,
+        timer: 0,
+        duration: 0,
+        threatId: null,
+        threatLastPosition: null,
+        boostActive: false,
+        boostTimer: 0,
+        boostCooldownTimer: 0,
+      },
     },
     references: {
       shape: null,

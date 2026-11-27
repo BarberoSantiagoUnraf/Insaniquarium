@@ -242,3 +242,156 @@ Informar los archivos modificados, las correcciones realizadas y cualquier limit
 No comenzar una nueva instruccion de desarrollo al terminar.
 - [x] Correcciones Instruccion 03: dietas por especie/etapa en fuente unica, sin peso para depredacion; dependencia no usada de vision removida de FishAIController; documentacion de orientacion visual/limitacion.
 - [x] Corrección final Instrucción 03: orientación visual desacoplada del movimiento (sin actualización automática desde heading); clasificación de alimento mantiene canConsumeBaseFood() y consumable; documentación restaurada tras reorganización accidental.
+
+# Instrucción 04 — Sistema de evasión de peces
+
+## Objetivo
+
+Implementar el sistema de evasión de amenazas para los peces, utilizando el sistema de visión existente y la arquitectura actual de IA.
+
+La evasión debe permitir que un pez reaccione ante un depredador detectado, interrumpa su actividad actual y se aleje de la amenaza durante un período determinado.
+
+Implementar exclusivamente evasión. No avanzar con alimentación, caza ni otros comportamientos.
+
+## 1. Activación de la evasión
+
+- Un pez puede iniciar evasión cuando detecta una amenaza o depredador mediante `VisionSystem`.
+- La activación debe incluir una comprobación del atributo `instinct` individual del pez.
+- Instinct es un valor entero aleatorio entre 2 y 8, asignado al crear el pez y persistente durante toda su vida.
+- Utilizar el valor existente. No modificar su generación ni persistencia.
+
+La relación entre Instinct y la probabilidad de evasión todavía no está definida numéricamente.
+
+**No inventar probabilidades, umbrales ni fórmulas de conversión.** Revisar las convenciones existentes y, si no hay una regla establecida, informar qué definición falta sin introducir una fórmula arbitraria.
+
+## 2. Prioridad de comportamiento
+
+La evasión debe tener la máxima prioridad entre los comportamientos de IA definidos hasta ahora.
+
+Orden de prioridad:
+
+1. Evasión.
+2. Alimentación / caza.
+3. Rendición.
+4. Cardumen.
+5. Confort.
+
+En esta instrucción solo se implementa evasión y su prioridad sobre los comportamientos existentes o futuros.
+
+- Al comenzar la evasión, interrumpir el comportamiento actual.
+- Ningún comportamiento de menor prioridad puede reemplazar la evasión mientras esté activa.
+- La evasión no debe reiniciarse constantemente por detectar nuevamente al mismo depredador.
+- Si el depredador desaparece de la visión, el pez debe continuar huyendo hasta finalizar su duración.
+
+## 3. Duración de la evasión
+
+La duración depende de la escala individual del pez.
+
+Fórmula acordada:
+
+`EvasionDuration = EvasionDurationBase × Scale`
+
+- `EvasionDurationBase` debe ser configurable.
+- `Scale` utiliza el valor individual persistente del pez, entre 0.7 y 1.3.
+- Los peces más grandes permanecen más tiempo evadiendo.
+- Los peces más pequeños finalizan antes.
+
+No establecer un valor base arbitrario si no existe previamente. Si falta, dejarlo configurable e informar el valor provisional elegido, sin ocultarlo ni convertirlo en definitivo.
+
+El temporizador debe ser independiente de la recuperación visual y de cualquier futura duración máxima de persecución.
+
+## 4. Movimiento evasivo
+
+La evasión debe utilizar el `MovementController` existente. No crear un sistema de movimiento paralelo.
+
+- El pez debe alejarse activamente del depredador.
+- Comparar la posición del depredador con la dirección de desplazamiento del pez.
+- Si la amenaza está delante del pez o sobre su trayectoria, reaccionar cambiando inmediatamente el rumbo hacia una dirección de escape válida.
+- Si pierde visión del depredador, continuar el desplazamiento evasivo.
+- No regresar al rumbo anterior al finalizar.
+- Utilizar Boost si está disponible para ese pez.
+- No introducir aceleración compleja, navegación avanzada ni pathfinding.
+
+La evasión debe ser reactiva y simple. No hace falta simular un comportamiento sofisticado de supervivencia.
+
+## 5. Orientación visual
+
+Respetar la separación ya implementada:
+
+- `heading` controla el desplazamiento.
+- `orientation` controla la orientación visual de la cabeza.
+
+Cambiar de dirección para escapar no debe modificar automáticamente `orientation`.
+
+No modificar el sistema de orientación visual aprobado en la Instrucción 03.
+
+## 6. Arquitectura y responsabilidades
+
+Revisar la arquitectura existente antes de implementar.
+
+- `VisionSystem`: proporciona información sobre amenazas detectadas y sus posiciones.
+- `FishAIController`: coordina prioridades y activación de evasión.
+- `MovementController`: ejecuta los cambios de dirección y movimiento evasivo.
+- Configuración por especie: aloja los parámetros de evasión que correspondan.
+
+Evitar duplicar información que ya esté disponible en los contactos de visión o en los parámetros derivados del pez.
+
+Si es necesario incorporar un estado de evasión, integrarlo al sistema de estados existente, sin reemplazar ni reorganizar toda la arquitectura.
+
+## 7. Restricciones
+
+No implementar:
+
+- Alimentación ni consumo de alimento.
+- Búsqueda de alimento.
+- Caza, persecución ni embestidas.
+- Comportamiento de cardumen.
+- Rendición.
+- Confort.
+- Nuevas mecánicas de hambre o supervivencia.
+- Cambios en el sistema de visión.
+- Cambios en la orientación visual.
+- Crecimiento, persistencia o economía.
+- Nuevos sistemas de movimiento.
+- Refactors generales.
+
+No modificar comportamientos ajenos a la evasión salvo que sea imprescindible para integrarla correctamente. Si fuera necesario, explicar el motivo en el informe.
+
+## 8. Verificación
+
+Comprobar:
+
+1. Un pez detecta una amenaza y puede activar evasión.
+2. La activación utiliza Instinct sin alterar el atributo individual.
+3. La evasión interrumpe el comportamiento de menor prioridad.
+4. El pez se aleja del depredador.
+5. La evasión continúa aunque el depredador deje de ser visible.
+6. El temporizador no se reinicia por detecciones repetidas.
+7. La duración respeta `EvasionDurationBase × Scale`.
+8. Se utiliza Boost cuando corresponde y está disponible.
+9. Al finalizar, el pez continúa con un rumbo válido y no recupera el anterior.
+10. El movimiento evasivo no altera la orientación visual.
+11. Los peces siguen respetando los límites de la arena.
+12. No se producen errores ni regresiones en el movimiento habitual o en la visión.
+
+Si faltan valores o reglas previamente acordadas, identificarlos claramente. No disfrazar decisiones de diseño nuevas como si ya estuvieran establecidas.
+
+## 9. Informe final
+
+Al terminar, informar:
+
+- Archivos modificados.
+- Cómo se activa la evasión.
+- Cómo se utiliza Instinct.
+- Cómo se calcula la duración.
+- Cómo decide el rumbo de escape.
+- Integración de Boost.
+- Prioridad respecto a otros comportamientos.
+- Pruebas realizadas y resultado del build.
+- Decisiones provisionales pendientes de aprobación.
+- Problemas encontrados.
+
+No comenzar alimentación, caza, cardumen ni la siguiente instrucción. Esperar mi revisión y aprobación.
+
+
+- [x] Instrucción 04 - Sistema de evasión: activación por amenaza/instinct, prioridad máxima, duración EvasionDurationBase*Scale, huida con última posición conocida, boost si disponible, sin alterar orientación visual. Valores provisionales y regla Instinct->probabilidad pendientes.

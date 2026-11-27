@@ -27,6 +27,15 @@ export const PROVISIONAL_FISH_VALUES = Object.freeze({
     [SPECIES.SURUBI]: 2500,
     [SPECIES.DIENTUDO]: 2500,
   }),
+  // Provisional: duración base de evasión en ms. Pendiente de ajuste/balance.
+  EVASION_DURATION_BASE: Object.freeze({
+    [SPECIES.MOJARRITA]: 2500,
+    [SPECIES.SURUBI]: 3000,
+    [SPECIES.DIENTUDO]: 2800,
+  }),
+  // Pendiente de definición: relación Instinct (2-8) -> probabilidad de activar evasión.
+  // null significa que no hay regla acordada; no se inventa fórmula.
+  EVASION_INSTINCT_CHANCE: null,
 });
 
 export const GROWTH_STAGE_ORDER = Object.freeze([
@@ -125,11 +134,12 @@ function createSpeciesConfig(species) {
     visionRange: PROVISIONAL_FISH_VALUES.VISION_RANGE[species],
     visualRecoveryTime: PROVISIONAL_FISH_VALUES.VISUAL_RECOVERY_TIME[species],
     boost: {
-      speedMultiplier: null,
+      // Provisional: boost disponible para evasión sin introducir mecánica completa de boost.
+      speedMultiplier: 1.6,
       duration: null,
       cooldown: null,
     },
-    evadeDuration: null,
+    evadeDuration: PROVISIONAL_FISH_VALUES.EVASION_DURATION_BASE[species],
     maxChaseDuration: null,
     comfortDuration: null,
     surrenderDuration: null,

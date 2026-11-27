@@ -42,3 +42,5 @@ ull.
 - Implementar alimentación, hambre/supervivencia, persecución, embestida, evasión, confort, rendición y crecimiento usando la percepción.
 - Incorporar obstáculos/decoraciones reales con hitboxes en el área de juego.
 - Ajustar valores provisionales de movimiento/visión tras pruebas visuales.
+
+
