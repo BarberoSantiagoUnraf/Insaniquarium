@@ -94,3 +94,12 @@ pm run build OK; checks Node para inactividad por null, consumo único, superviv
 - ishData: agrega 	ransient.prey.targetId/targetLastPosition. GameScene pasa ishes al AI controller.
 - Sin CHASE/CHARGE/ataque/consumo de peces. Validación: 
 pm run build OK; checks Node para selección cercana, inactividad sin hambre, uso de última posición, expiración recovery, evasión interrumpiendo.
+
+## 2026-11-27 - Instrucción 07: Persecución acelerada (CHASE)
+- ishConfig: agrega chase config (speedMultiplier, ctivationDistance, maxDuration) en 
+ull por defecto; deriveFishStats expone chaseSpeed/ActivationDistance/MaxDuration solo si válidos.
+- ishData: agrega 	ransient.chase (active,timer,duration,targetId).
+- MovementController: updateChase usa chaseSpeed solo en CHASE; sin aceleración progresiva; respeta límites/obstáculos.
+- FishAIController: transición APPROACH_PREY->CHASE solo con hambre/config válida y distancia <= activationDistance; mantiene target, usa última posición conocida por recovery visual; no reinicia max chase timer al recuperar visión; termina por presa inválida/recovery expirada/maxDuration; evasión interrumpe; prioridades protegidas.
+- Validación: 
+pm run build OK; checks Node para inactividad con null, activación con config válida, velocidad solo CHASE, continuidad con last known, no reset timer al recuperar visión, expiración recovery/maxDuration, evasión interrumpe.

@@ -1,5 +1,9 @@
 ﻿import { FISH_CONFIG } from '../config/fishConfig.js';
 
+function isFiniteNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
 export default class MovementController {
   constructor() {
     this.entries = new Map();
@@ -52,7 +56,11 @@ export default class MovementController {
     this.updateApproachTarget(entry, delta, targetPosition);
   }
 
-  updateApproachTarget(entry, delta, targetPosition) {
+  updateChase(entry, delta, targetPosition) {
+    this.updateApproachTarget(entry, delta, targetPosition, this.getChaseSpeed(entry, delta));
+  }
+
+  updateApproachTarget(entry, delta, targetPosition, speedOverride = null) {
     if (targetPosition) {
       const shape = entry.fish.references.shape;
       const dx = targetPosition.x - shape.x;
@@ -66,9 +74,19 @@ export default class MovementController {
     }
 
     this.updateHeading(entry, delta);
-    const speed = this.getCurrentSpeed(entry, delta);
+    const speed = speedOverride ?? this.getCurrentSpeed(entry, delta);
     this.moveFish(entry, speed, delta);
     this.constrainToBounds(entry);
+  }
+
+  getChaseSpeed(entry, delta) {
+    const base = this.getCurrentSpeed(entry, delta);
+    if (base === null) return null;
+    const chaseSpeed = entry.fish.stats?.chaseSpeed;
+    if (isFiniteNumber(chaseSpeed) && chaseSpeed > 0) {
+      return Math.max(base, chaseSpeed);
+    }
+    return base;
   }
 
   updateRoam(entry, delta) {

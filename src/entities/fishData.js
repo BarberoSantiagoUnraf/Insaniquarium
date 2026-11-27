@@ -50,6 +50,12 @@ export function createFishData({ id, species, x, y }) {
         targetId: null,
         targetLastPosition: null,
       },
+      chase: {
+        active: false,
+        timer: 0,
+        duration: null,
+        targetId: null,
+      },
     },
     references: {
       shape: null,

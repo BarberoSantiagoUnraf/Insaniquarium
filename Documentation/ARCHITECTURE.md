@@ -50,7 +50,7 @@
 - Los cuatro estadios son larva, juvenil, adulto y viejo; `baseWeightByStage` contempla los cuatro con valores provisionales, sin lógica de crecimiento.
 - La evasión tiene la prioridad más alta entre los estados de comportamiento.
 - La escala individual se aplica al `displaySize`; HUD y economía no se modificaron.
-- `MovementController` administra rumbo, velocidad, colisiones simples, evasión, `SEEK_FOOD` y `APPROACH_PREY`; `FishAIController` prioriza `EVADE` y delega hambre/consumo a sistemas dedicados.
+- `MovementController` administra rumbo, velocidad, colisiones simples, evasión, `SEEK_FOOD`, `APPROACH_PREY` y `CHASE` (velocidad de chase solo en estado CHASE); `FishAIController` prioriza `EVADE` y delega hambre/consumo a sistemas dedicados.
 - `VisionSystem` no cambia estado/movimiento: solo registra contactos visibles, última posición conocida y `recoveryTimer` independiente por contacto.
 - La visión usa un cono de 270° orientado a la cabeza (`transient.orientation`: derecha/izquierda). La representación actual solo soporta orientación horizontal; no se infiere rotación vertical. Alcance `visionRange * scale`.
 - Heading y orientación visual están desacoplados: el movimiento actualiza posición/rumbo; la orientación solo cambia por operaciones explícitas de facing (`setFacingOrientation`/actualización desde heading objetivo), no por el desplazamiento. Retroceder conserva orientación.
@@ -64,6 +64,7 @@
 - Alimento: profundidad 20.
 - HUD: profundidad 100.
 - Menú de pausa: escena separada por encima de `GameScene`.
+
 
 
 

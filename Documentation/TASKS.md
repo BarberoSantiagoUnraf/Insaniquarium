@@ -910,3 +910,113 @@ Informar:
 
 No realizar commit ni push sin autorización. No comenzar la siguiente instrucción.
 - [x] Instrucción 06 - Detección y aproximación a presas: APPROACH_PREY usa PREY visible más cercana validada por canConsumeFish, requiere hambre/config válida, velocidad habitual, última posición conocida por recovery; sin CHASE/CHARGE/ataque.
+# Instrucción 07 — Persecución acelerada (CHASE)
+
+## Objetivo
+
+Implementar el estado `CHASE` como una continuación de la aproximación a presas (`APPROACH_PREY`).
+
+El pez debe poder perseguir una presa compatible mediante un movimiento más rápido que el habitual, respetando la arquitectura y las prioridades existentes.
+
+Esta instrucción no implementa la embestida, el ataque ni el consumo de otros peces.
+
+## 1. Revisión previa
+
+Antes de modificar código, revisar:
+
+- `FishAIController`
+- `VisionSystem`
+- `MovementController`
+- `HungerSystem`
+- `fishConfig`
+- `behaviorStates`
+- `fishData`
+
+Reutilizar los sistemas y datos existentes. No duplicar la detección de presas ni las reglas de dieta.
+
+## 2. Activación de CHASE
+
+- `CHASE` debe depender de una presa compatible detectada mediante `VisionSystem`.
+- La presa debe seguir siendo válida según `canConsumeFish()`.
+- El pez debe estar hambriento y tener habilitado el sistema de hambre.
+- La transición desde `APPROACH_PREY` debe depender de parámetros de configuración explícitos.
+- Los parámetros de activación y duración deben permanecer inactivos si están en `null` o no contienen valores válidos.
+- No inventar umbrales, duraciones ni fórmulas basadas en `Instinct`.
+
+## 3. Movimiento de persecución
+
+- Utilizar `MovementController` para ejecutar el movimiento.
+- La persecución debe permitir una velocidad superior a la habitual, únicamente cuando su configuración sea válida.
+- No modificar la velocidad habitual ni los parámetros del movimiento de otros estados.
+- No introducir aceleraciones progresivas, animaciones ni efectos visuales nuevos.
+- Mantener las restricciones de límites y obstáculos existentes.
+
+## 4. Seguimiento de la presa
+
+- Mantener la presa seleccionada mientras siga siendo válida.
+- Actualizar su posición objetivo cuando continúe visible.
+- Si se pierde visión, reutilizar la última posición conocida mediante el mecanismo de recuperación existente.
+- Abandonar la persecución cuando la presa deje de ser válida o expire la recuperación visual.
+- No reiniciar el temporizador máximo de persecución al recuperar contacto visual.
+
+## 5. Prioridades
+
+Respetar el orden existente:
+
+`EVADE > SURRENDER > COMFORT > CHARGE > CHASE > APPROACH_PREY > SEEK_FOOD > ROAM`
+
+- La evasión debe interrumpir inmediatamente `CHASE`.
+- Los estados de mayor prioridad no pueden ser sobrescritos por la persecución.
+- No implementar todavía `CHARGE`.
+- No permitir transiciones incorrectas hacia `ROAM` al abandonar la persecución.
+
+## 6. Responsabilidades
+
+- `VisionSystem`: detección y recuperación de contacto visual.
+- `fishConfig`: parámetros de persecución.
+- `FishAIController`: selección de presa y decisiones de transición.
+- `MovementController`: desplazamiento durante la persecución.
+- `HungerSystem`: estado de hambre.
+- `FeedingSystem`: permanece limitado a la alimentación básica existente.
+
+No trasladar decisiones de IA al sistema de movimiento.
+
+## 7. Fuera de alcance
+
+No implementar:
+
+- Embestida o ataque (`CHARGE`).
+- Consumo, daño o eliminación de peces.
+- Cambios en las reglas de dieta.
+- Nuevas fórmulas de `Instinct`.
+- Cardumen o comportamiento de confort.
+- Crecimiento.
+- Cambios en evasión o visión que no sean estrictamente necesarios.
+
+## 8. Validación
+
+Comprobar:
+
+1. Una presa incompatible nunca inicia una persecución.
+2. Un pez que no tiene hambre no inicia `CHASE`.
+3. Los parámetros `null` mantienen la persecución inactiva.
+4. Una configuración válida permite activar la transición desde `APPROACH_PREY`.
+5. La velocidad de persecución se aplica únicamente durante `CHASE`.
+6. La presa se sigue correctamente mientras permanece visible.
+7. La recuperación visual utiliza la última posición conocida.
+8. La persecución termina ante una presa inválida o recuperación expirada.
+9. Recuperar contacto visual no reinicia el temporizador máximo.
+10. La evasión interrumpe la persecución.
+11. Los estados de mayor prioridad permanecen protegidos.
+12. La aproximación, alimentación básica y movimiento habitual no presentan regresiones.
+
+## 9. Entrega
+
+- Ejecutar `npm run build`.
+- Ejecutar las comprobaciones disponibles.
+- Informar los archivos modificados, transiciones implementadas y resultados de validación.
+- Identificar expresamente los parámetros que permanecen pendientes.
+- No afirmar que una prueba fue ejecutada si no se ejecutó.
+- No realizar commit ni push sin autorización.
+- No avanzar a la siguiente instrucción.
+- [x] Instrucción 07 - Persecución acelerada (CHASE): transición desde APPROACH_PREY con config chase válida, hambre activa y presa compatible; chaseSpeed solo en CHASE; última posición conocida; no reinicia max timer al recuperar visión; evasión/prioridades respetadas. Parámetros chase en null por defecto.
