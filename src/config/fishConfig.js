@@ -17,14 +17,24 @@ export const PROVISIONAL_FISH_VALUES = Object.freeze({
     [SPECIES.SURUBI]: 2400,
     [SPECIES.DIENTUDO]: 2100,
   }),
+  VISION_RANGE: Object.freeze({
+    [SPECIES.MOJARRITA]: 180,
+    [SPECIES.SURUBI]: 220,
+    [SPECIES.DIENTUDO]: 200,
+  }),
+  VISUAL_RECOVERY_TIME: Object.freeze({
+    [SPECIES.MOJARRITA]: 2500,
+    [SPECIES.SURUBI]: 2500,
+    [SPECIES.DIENTUDO]: 2500,
+  }),
 });
 
 function createSpeciesConfig(species) {
   return {
     habitualSpeed: PROVISIONAL_FISH_VALUES.HABITUAL_SPEED[species],
     directionChangeInterval: PROVISIONAL_FISH_VALUES.DIRECTION_CHANGE_INTERVAL[species],
-    visionRange: null,
-    visualRecoveryTime: null,
+    visionRange: PROVISIONAL_FISH_VALUES.VISION_RANGE[species],
+    visualRecoveryTime: PROVISIONAL_FISH_VALUES.VISUAL_RECOVERY_TIME[species],
     boost: {
       speedMultiplier: null,
       duration: null,
@@ -74,6 +84,7 @@ export function deriveFishStats(species, scale, growthStage) {
       scale,
     ),
     visionRange: FISH_DERIVATION.scaledValue(config.visionRange, scale),
+    visualRecoveryTime: config.visualRecoveryTime,
     boostSpeed: FISH_DERIVATION.boostedSpeed(
       config.habitualSpeed,
       config.boost.speedMultiplier,

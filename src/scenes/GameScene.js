@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import FishAIController from '../ai/FishAIController.js';
+import VisionSystem from '../ai/VisionSystem.js';
 import GameHud from '../ui/GameHud.js';
 import Wallet from '../systems/Wallet.js';
 import EntityManager from '../entities/EntityManager.js';
@@ -29,9 +30,14 @@ export default class GameScene extends Phaser.Scene {
     this.background = this.add.image(0, 0, TEXTURES.BACKGROUND).setOrigin(0, 0).setDepth(0);
     this.entities = new EntityManager();
     this.movementController = new MovementController();
-    this.fishAiController = new FishAIController({ movementController: this.movementController });
+    this.visionSystem = new VisionSystem();
+    this.fishAiController = new FishAIController({
+      movementController: this.movementController,
+      visionSystem: this.visionSystem,
+    });
     this.aiDependencies = createAiDependencies(this.entities);
     this.aiDependencies.movementController = this.movementController;
+    this.aiDependencies.visionSystem = this.visionSystem;
     this.aiDependencies.fishAiController = this.fishAiController;
     this.initialFish = this.createInitialFish();
     this.fish = this.initialFish.references.shape;
@@ -101,6 +107,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    this.visionSystem.update({
+      fishes: this.entities.fishes,
+      foods: this.foods,
+      delta,
+    });
     this.fishAiController.update(delta, this.getArenaBounds());
 
     for (let index = this.foods.length - 1; index >= 0; index -= 1) {
@@ -157,6 +168,7 @@ export default class GameScene extends Phaser.Scene {
       .setDepth(20);
 
     this.foods.push({
+      id: `food-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       shape,
       radius: FOOD_RULES.RADIUS,
       bottomY: this.scale.height - FOOD_RULES.RADIUS - FOOD_RULES.BOTTOM_PADDING,

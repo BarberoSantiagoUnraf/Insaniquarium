@@ -36,3 +36,13 @@
 - GameScene registra peces en el movimiento, actualiza IA en update y expone bounds del área jugable con lista de obstáculos vacía por ahora.
 - Verificación:
 pm run build y cálculo de velocidad por escala.
+
+## 2026-11-27 - Sistema de visión
+
+- Agregado VisionSystem con cono de 270° (90° ciego posterior), orientación por cabeza (	ransient.orientation), alcance efectivo isionRange * scale.
+- Clasificación de contactos: alimento, presa, amenaza y compañero; sin decisiones de comportamiento ni cambios de movimiento.
+- Pérdida de contacto conserva lastKnownPosition e inicia ecoveryTimer independiente por contacto; al expirar se descarta.
+- ishData incorpora 	ransient.vision.contacts; ishConfig agrega isionRange y isualRecoveryTime provisionales por especie y expone isualRecoveryTime en stats.
+- GameScene actualiza visión antes de la IA; alimentos reciben id estable para tracking.
+- Verificación: 
+pm run build y script Node para detección, pérdida y expiración de contacto.

@@ -22,6 +22,8 @@
 - src/entities/fishData.js: datos persistentes, temporales y referencias de cada pez.
 - src/entities/EntityManager.js: registro, ids únicos y consulta de peces activos.
 - src/ai/FishAIController.js: coordina comportamiento individual; hoy ejecuta ROAM delegando en movimiento.
+- src/ai/VisionSystem.js: percepción visual, clasificación de contactos y recuperación visual.
+- src/ai/visionTypes.js: categorías de visión y constantes del campo visual.
 - src/ai/behaviorStates.js: estados de comportamiento y prioridades.
 - src/ai/systemRoles.js: responsabilidades y dependencias de los sistemas de IA.
 
@@ -41,18 +43,18 @@
 - El guardado no persiste datos todavía: saveGame devuelve un resultado sin guardar hasta configurar un handler.
 - El escalado usa Phaser.Scale.RESIZE; cada layout recalcula posiciones y tamaños.
 - Los peces se registran en EntityManager; el surubí inicial y los comprados comparten la misma estructura de datos.
-- Los datos del pez se dividen en persistent, 	ransient y 
-eferences; las referencias a entidades no se consideran persistibles.
+- Los datos del pez se dividen en persistent, 	ransient y eferences; las referencias a entidades no se consideran persistibles.
 - Los parámetros derivados se calculan con deriveFishStats() y se exponen como getter, sin duplicarlos en el pez.
 - La velocidad habitual y de Boost se derivan inversamente proporcionales a la escala individual.
 - Los parámetros no definidos quedan en 
 ull y los valores necesarios para inicializar están agrupados en PROVISIONAL_FISH_VALUES.
-- Los cuatro estadios son larva, juvenil, adulto y viejo; `baseWeightByStage` contempla los cuatro con valores provisionales, sin lógica de crecimiento.
+- Los cuatro estadios son larva, juvenil, adulto y viejo; aseWeightByStage contempla los cuatro con valores provisionales, sin lógica de crecimiento.
 - La evasión tiene la prioridad más alta entre los estados de comportamiento.
 - La escala individual se aplica al displaySize; HUD y economía no se modificaron.
 - MovementController administra rumbo, velocidad y colisiones simples; FishAIController solo decide ejecutar ROAM mientras no haya comportamientos prioritarios.
-- Los límites usan el tamaño visible del pez; la evitación de obstáculos es reactiva con probe adelantado y rumbo aleatorio alternativo, sin pathfinding.
-- El movimiento usa valores provisionales por especie para velocidad e intervalo de rumbo, centralizados en FishConfig.js.
+- VisionSystem no cambia estado/movimiento: solo registra contactos visibles, última posición conocida y ecoveryTimer independiente por contacto.
+- La visión usa un cono de 270° orientado a 	ransient.orientation (cabeza), alcance isionRange * scale y clasificación alimento/presa/amenaza/compañero.
+- El movimiento usa valores provisionales por especie para velocidad e intervalo de rumbo, centralizados en ishConfig.js.
 
 ## Capas de renderizado
 

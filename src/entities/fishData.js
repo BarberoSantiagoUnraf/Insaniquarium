@@ -27,6 +27,9 @@ export function createFishData({ id, species, x, y }) {
       position: { x, y },
       orientation: 1,
       behaviorState: BEHAVIOR_STATES.ROAM,
+      vision: {
+        contacts: new Map(),
+      },
     },
     references: {
       shape: null,

@@ -153,3 +153,142 @@ Al terminar, informar:
 - Problemas encontrados y decisiones pendientes.
 
 No comenzar automáticamente la siguiente instrucción. Esperar la revisión y aprobación del usuario.
+
+Instrucción 03 — Sistema de visión de los peces
+
+Objetivo
+
+Implementar el sistema de percepción visual de los peces. Debe permitir detectar entidades cercanas dentro del campo visual y conservar información sobre su última posición conocida.
+
+Esta instrucción implementa exclusivamente la percepción. No debe implementar todavía evasión, alimentación, persecución ni decisiones de comportamiento.
+
+1. Campo visual
+
+Cada pez tiene un único rango de visión, definido por especie.
+
+El campo visual es un cono de aproximadamente 270°, con un punto ciego posterior de aproximadamente 90°.
+
+La visión sigue la orientación de la cabeza del pez, no su dirección de desplazamiento.
+
+Retroceder no modifica la orientación visual.
+
+El alcance efectivo se calcula aplicando la escala individual del pez al rango base de su especie.
+
+No utilizar distancias diferentes para detectar alimento, presas, amenazas o compañeros.
+
+2. Entidades detectables
+
+El sistema debe poder identificar y clasificar las entidades detectadas como:
+
+Alimento.
+
+Presa.
+
+Amenaza o depredador.
+
+Compañero de especie.
+
+La clasificación debe proporcionar información a los sistemas de comportamiento, pero no decidir qué debe hacer el pez.
+
+La reacción ante cada categoría dependerá posteriormente de la IA, el hambre, el instinto y las reglas de comportamiento.
+
+3. Pérdida de contacto visual
+
+Cuando una entidad detectada sale del campo visual o supera el alcance:
+
+Conservar su última posición conocida.
+
+Permitir que los sistemas de comportamiento consulten esa posición.
+
+Iniciar un temporizador de recuperación visual.
+
+Mientras el temporizador siga activo, el pez puede intentar recuperar el contacto visual cuando se implementen los comportamientos correspondientes.
+
+Al vencer el temporizador, dejar de considerar válida la última posición conocida.
+
+La recuperación visual y la duración máxima de persecución deben utilizar temporizadores independientes. Recuperar contacto visual no debe reiniciar el temporizador máximo de persecución.
+
+4. Configuración y arquitectura
+
+Reutilizar FISH_CONFIG y el sistema de parámetros derivados existente.
+
+Incorporar el rango base de visión por especie sin inventar valores definitivos.
+
+Aplicar la escala individual mediante las fórmulas centralizadas.
+
+Mantener separadas las responsabilidades del sistema de visión y del controlador de IA.
+
+Evitar duplicar cálculos o almacenar parámetros derivados innecesariamente.
+
+Reutilizar los datos y referencias de entidades existentes.
+
+5. Límites de esta instrucción
+
+NO implementar:
+
+Evasión.
+
+Alimentación ni consumo de alimento.
+
+Persecución de presas.
+
+Embestidas o Boost.
+
+Cambios de estado por detección.
+
+Movimiento adicional.
+
+Cardumen.
+
+Crecimiento.
+
+Persistencia o guardado nuevo.
+
+HUD o economía.
+
+No inventar duraciones ni valores de alcance que todavía no estén definidos. Mantener los valores pendientes como configurables o provisionales.
+
+6. Criterios de aceptación
+
+Todos los peces utilizan el mismo sistema de visión.
+
+Cada especie puede tener su propio rango base.
+
+La escala individual modifica correctamente el alcance.
+
+El campo visual respeta el cono de 270° y el punto ciego posterior.
+
+La orientación visual depende de la cabeza y no del desplazamiento.
+
+Se detectan y clasifican correctamente las cuatro categorías de entidades.
+
+Se conserva la última posición conocida cuando se pierde contacto.
+
+La recuperación visual tiene un temporizador independiente.
+
+El sistema no ejecuta comportamientos ni modifica el movimiento habitual.
+
+Los peces siguen funcionando correctamente y no se introducen regresiones.
+
+7. Informe de implementación
+
+Al finalizar, informar:
+
+Archivos creados y modificados.
+
+Responsabilidades de cada componente.
+
+Cómo se calcula el campo visual y el alcance efectivo.
+
+Cómo se clasifican las entidades.
+
+Cómo funciona la pérdida y recuperación de contacto.
+
+Valores provisionales utilizados y parámetros pendientes.
+
+Pruebas realizadas y resultados.
+
+Problemas encontrados o decisiones que requieran confirmación.
+
+No comenzar la siguiente instrucción automáticamente.
+- [x] Instrucción 03 - Sistema de visión: percepción con cono 270°, clasificación, última posición conocida y recuperación visual independiente.
