@@ -118,8 +118,10 @@ export default class FishAIController {
   }
 
   canUseBoost(fish) {
-    const { boostSpeed } = fish.stats ?? {};
-    return boostSpeed !== null && boostSpeed !== undefined;
+    const { boostSpeed, boostDuration, boostCooldown } = fish.stats ?? {};
+    return [boostSpeed, boostDuration, boostCooldown].every(
+      (value) => typeof value === 'number' && Number.isFinite(value) && value > 0,
+    );
   }
 
   endEvasion(entry) {

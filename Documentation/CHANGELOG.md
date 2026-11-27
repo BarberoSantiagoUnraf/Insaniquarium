@@ -68,3 +68,6 @@
 - Orientación visual no cambia por evasión; respeta desacople heading/orientation.
 - Verificación: 
 pm run build; scripts Node para activación, duración por escala, continuidad sin visión, no-reinicio por redetección, boost activo y orientación preservada.
+
+## 2026-11-27 - Corrección puntual Instrucción 04: Boost evasión
+- FishAIController.canUseBoost: requiere oostSpeed, oostDuration y oostCooldown numéricos > 0. Sin valores válidos no se activa boost; la evasión usa velocidad habitual. No se inventan duraciones/cooldowns.

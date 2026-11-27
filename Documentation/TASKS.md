@@ -395,3 +395,92 @@ No comenzar alimentación, caza, cardumen ni la siguiente instrucción. Esperar 
 
 
 - [x] Instrucción 04 - Sistema de evasión: activación por amenaza/instinct, prioridad máxima, duración EvasionDurationBase*Scale, huida con última posición conocida, boost si disponible, sin alterar orientación visual. Valores provisionales y regla Instinct->probabilidad pendientes.
+
+# Corrección puntual — Instrucción 04: Boost durante la evasión
+
+## Objetivo
+
+Corregir el funcionamiento del Boost dentro del sistema de evasión implementado en la Instrucción 04.
+
+El Boost actual se activa al comenzar la evasión, pero no tiene una duración efectiva configurada. Esto provoca que permanezca activo durante toda la evasión, comportándose como un aumento de velocidad permanente.
+
+Resolver este problema sin inventar valores de duración, cooldown ni nuevas reglas de comportamiento.
+
+## 1. Corregir la activación del Boost
+
+Revisar la lógica de:
+
+- `canUseBoost()`
+- `startEvasion()`
+- `updateEvasionState()`
+- `getEvadeSpeed()`
+- Configuración del Boost en `fishConfig.js`
+
+El Boost no debe activarse automáticamente solo porque exista un `boostSpeed` derivado.
+
+Si su configuración todavía no dispone de duración y cooldown válidos, debe considerarse no disponible para su activación.
+
+La evasión debe seguir funcionando normalmente aunque el Boost no esté disponible.
+
+## 2. Evitar Boost indefinido
+
+Actualmente `boostDuration` es `null`, por lo que no existe un tiempo efectivo para finalizar el impulso.
+
+Corregir este comportamiento de forma que:
+
+- Un Boost sin duración definida no pueda activarse.
+- No se mantenga un Boost activo indefinidamente.
+- No se invente una duración provisional.
+- No se invente un cooldown.
+- No se altere la duración de la evasión para compensar la ausencia de Boost.
+
+Si el sistema aún no dispone de valores válidos, el pez evade utilizando su velocidad habitual.
+
+## 3. Mantener la estructura existente
+
+Conservar:
+
+- El sistema de evasión actual.
+- La detección de amenazas.
+- La última posición conocida de la amenaza.
+- La duración de evasión proporcional a la escala.
+- El movimiento de escape.
+- La prioridad de evasión.
+- La arquitectura actual de `FishAIController` y `MovementController`.
+
+No crear un nuevo sistema de Boost ni introducir abstracciones innecesarias.
+
+## 4. Restricciones
+
+No modificar:
+
+- Probabilidad de evasión por Instinct.
+- Rangos ni campo visual.
+- Dietas o clasificación de peces.
+- Movimiento habitual.
+- Duración de evasión.
+- Persecución, alimentación, confort o rendición.
+- Crecimiento ni persistencia.
+- Economía, HUD o interfaz.
+- Valores de duración o cooldown que todavía no hayan sido definidos.
+
+No realizar refactors generales ni cambios de documentación ajenos a esta corrección.
+
+## 5. Verificación
+
+Comprobar que:
+
+1. Un pez puede evadir correctamente sin Boost.
+2. El Boost no se activa si su configuración carece de duración válida.
+3. No existe un aumento de velocidad permanente durante toda la evasión.
+4. La evasión termina según su propio temporizador, independientemente del Boost.
+5. No se producen errores cuando `boostSpeed`, `boostDuration` o cooldown son `null`.
+6. `npm run build` finaliza correctamente.
+7. Los cambios del commit están limitados a la corrección solicitada.
+
+## 6. Informe final
+
+Informar los archivos modificados, el funcionamiento final del Boost, las verificaciones realizadas y cualquier pendiente.
+
+No implementar duración, cooldown ni balance del Boost. No avanzar a otras conductas de IA hasta mi revisión y aprobación.
+- [x] Corrección puntual Instrucción 04: Boost no se activa sin duración/cooldown válidos; evasión funciona con velocidad habitual si boost no disponible.
