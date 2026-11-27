@@ -41,7 +41,8 @@
 - El guardado no persiste datos todavía: saveGame devuelve un resultado sin guardar hasta configurar un handler.
 - El escalado usa Phaser.Scale.RESIZE; cada layout recalcula posiciones y tamaños.
 - Los peces se registran en EntityManager; el surubí inicial y los comprados comparten la misma estructura de datos.
-- Los datos del pez se dividen en persistent, 	ransient y eferences; las referencias a entidades no se consideran persistibles.
+- Los datos del pez se dividen en persistent, 	ransient y 
+eferences; las referencias a entidades no se consideran persistibles.
 - Los parámetros derivados se calculan con deriveFishStats() y se exponen como getter, sin duplicarlos en el pez.
 - La velocidad habitual y de Boost se derivan inversamente proporcionales a la escala individual.
 - Los parámetros no definidos quedan en 
@@ -51,7 +52,7 @@ ull y los valores necesarios para inicializar están agrupados en PROVISIONAL_FI
 - La escala individual se aplica al displaySize; HUD y economía no se modificaron.
 - MovementController administra rumbo, velocidad y colisiones simples; FishAIController solo decide ejecutar ROAM mientras no haya comportamientos prioritarios.
 - Los límites usan el tamaño visible del pez; la evitación de obstáculos es reactiva con probe adelantado y rumbo aleatorio alternativo, sin pathfinding.
-- El movimiento usa valores provisionales por especie para velocidad e intervalo de rumbo, centralizados en ishConfig.js.
+- El movimiento usa valores provisionales por especie para velocidad e intervalo de rumbo, centralizados en FishConfig.js.
 
 ## Capas de renderizado
 

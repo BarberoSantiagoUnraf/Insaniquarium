@@ -14,7 +14,6 @@ export default class FishAIController {
       const state = entry.fish.transient.behaviorState;
       if (state === BEHAVIOR_STATES.ROAM) {
         this.movementController.updateRoam(entry, delta);
-        this.movementController.constrainToBounds(entry);
       }
     }
   }
