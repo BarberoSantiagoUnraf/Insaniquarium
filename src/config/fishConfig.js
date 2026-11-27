@@ -5,6 +5,7 @@ export const PROVISIONAL_FISH_VALUES = Object.freeze({
     [GROWTH_STAGES.INFANT]: 1,
     [GROWTH_STAGES.JUVENILE]: null,
     [GROWTH_STAGES.ADULT]: null,
+    [GROWTH_STAGES.OLD]: null,
   }),
 });
 
@@ -45,7 +46,7 @@ export const FISH_DERIVATION = Object.freeze({
   boostedSpeed: (habitualSpeed, speedMultiplier, scale) => (
     habitualSpeed === null || speedMultiplier === null
       ? null
-      : habitualSpeed * speedMultiplier * scale
+      : (habitualSpeed * speedMultiplier) / scale
   ),
 });
 

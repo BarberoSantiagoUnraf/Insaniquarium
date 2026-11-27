@@ -13,6 +13,7 @@
 - Estructura común de datos de peces con identificador, especie, etapa, escala e instinto individuales, separando datos persistentes, temporales y referencias.
 - Registro de todos los peces en `EntityManager`, incluido el surubí inicial.
 - Configuración independiente para mojarrita, surubí y dientudo, con parámetros no definidos en `null` y valores provisionales identificados.
+- Cuatro estadios de crecimiento representados: infante, juvenil, adulto y viejo; los pesos base de los tres últimos permanecen provisionales y no hay lógica de crecimiento.
 - Cálculo centralizado de parámetros derivados desde la configuración y la escala individual.
 - Representación de los ocho estados de comportamiento con prioridad máxima para la evasión.
 - Mapa de responsabilidades y dependencias de los siete sistemas de IA, sin implementar sus comportamientos.
@@ -36,6 +37,7 @@
   - pausa congelando la posición del alimento y reanudación reanudando la caída.
 - Verificación de datos de peces: ids únicos, tres especies configuradas, escala dentro de 0.7–1.3, instinto entero dentro de 2–8, peso efectivo derivado y evasión con prioridad máxima.
 - Verificación en Chrome headless sobre el build: un canvas creado y `data-errors="[]"` después de 2.5 segundos.
+- Verificación de los cuatro estadios y de la presencia de sus pesos base en las tres configuraciones de especie.
 
 ## Pendiente
 

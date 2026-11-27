@@ -41,7 +41,9 @@
 - Los peces se registran en `EntityManager`; el surubí inicial y los comprados comparten la misma estructura de datos.
 - Los datos del pez se dividen en `persistent`, `transient` y `references`; las referencias a entidades no se consideran persistibles.
 - Los parámetros derivados se calculan con `deriveFishStats()` y se exponen como getter, sin duplicarlos en el pez.
+- La velocidad de Boost es inversamente proporcional a la escala individual.
 - Los parámetros no definidos quedan en `null` y los valores necesarios para inicializar están agrupados en `PROVISIONAL_FISH_VALUES`.
+- Los cuatro estadios son infante, juvenil, adulto y viejo; `baseWeightByStage` contempla los cuatro con valores provisionales, sin lógica de crecimiento.
 - La evasión tiene la prioridad más alta entre los estados de comportamiento.
 - La escala individual se aplica al `displaySize`; HUD y economía no se modificaron.
 

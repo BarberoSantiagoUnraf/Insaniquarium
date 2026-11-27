@@ -22,3 +22,7 @@
   is available.
 - Treat project documentation as the source
   of truth.
+  -----------------------
+- [x] Corregir la fórmula de velocidad de Boost para que sea inversamente proporcional a la escala.
+- [x] Incorporar los cuatro estadios de crecimiento definidos, incluyendo Viejo, sin implementar todavía el crecimiento.
+- [x] Revisar que las configuraciones de peso base contemplen los cuatro estadios, aunque sus valores permanezcan provisionales.

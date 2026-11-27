@@ -29,6 +29,7 @@ export const GROWTH_STAGES = Object.freeze({
   INFANT: 'infant',
   JUVENILE: 'juvenile',
   ADULT: 'adult',
+  OLD: 'old',
 });
 
 export const FISH_RULES = Object.freeze({

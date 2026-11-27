@@ -6,6 +6,8 @@
 - Incorporación de configuraciones por especie, parámetros provisionales y cálculo centralizado de parámetros derivados.
 - Incorporación de los estados de comportamiento y del mapa de responsabilidades de los sistemas de IA.
 - Aplicación de la escala individual al tamaño visual de los peces.
+- Corrección de la velocidad de Boost: ahora es inversamente proporcional a la escala individual.
+- Incorporación del estadio Viejo y revisión de los pesos base para los cuatro estadios, sin implementar crecimiento.
 - Verificación del build, de los datos de peces y de la carga del juego en Chrome headless.
 
 ## 0.2.0
