@@ -147,6 +147,8 @@ function createSpeciesConfig(species) {
     hunger: {
       max: null,
       decayInterval: null,
+      seekThreshold: null,
+      recoveryAmount: null,
     },
     survival: {
       maxDuration: null,
@@ -192,5 +194,10 @@ export function deriveFishStats(species, scale, growthStage) {
     boostDuration: FISH_DERIVATION.scaledValue(config.boost.duration, scale),
     boostCooldown: FISH_DERIVATION.scaledValue(config.boost.cooldown, scale),
     evadeDuration: FISH_DERIVATION.scaledValue(config.evadeDuration, scale),
+    hungerMax: config.hunger.max,
+    hungerDecayInterval: config.hunger.decayInterval,
+    hungerSeekThreshold: config.hunger.seekThreshold,
+    hungerRecoveryAmount: config.hunger.recoveryAmount,
+    survivalMaxDuration: config.survival.maxDuration,
   };
 }

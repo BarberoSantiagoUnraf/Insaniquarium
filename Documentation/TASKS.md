@@ -484,3 +484,149 @@ Informar los archivos modificados, el funcionamiento final del Boost, las verifi
 
 No implementar duración, cooldown ni balance del Boost. No avanzar a otras conductas de IA hasta mi revisión y aprobación.
 - [x] Corrección puntual Instrucción 04: Boost no se activa sin duración/cooldown válidos; evasión funciona con velocidad habitual si boost no disponible.
+
+# Instrucción 05 — Sistema de hambre y alimentación básica
+
+Implementar el sistema inicial de hambre y el comportamiento de búsqueda y consumo de alimento base para los peces de **Insanuquarium Deluxe Plus**.
+
+Esta tarea debe respetar la arquitectura y las decisiones ya aprobadas. No inventar valores de balance ni avanzar hacia comportamientos que todavía no están dentro del alcance.
+
+## 1. Antes de implementar
+
+- Revisar la implementación actual de `FishAIController`, `VisionSystem`, `fishData`, `fishConfig`, `behaviorStates` y `systemRoles`.
+- Revisar cómo `GameScene` crea, actualiza y elimina los alimentos.
+- Reutilizar las estructuras y responsabilidades existentes.
+- No duplicar información que ya proporciona `VisionSystem`.
+- No modificar sistemas ajenos a esta tarea.
+
+## 2. Sistema de hambre
+
+Implementar la responsabilidad del sistema de hambre, separada del controlador de IA.
+
+Debe contemplar:
+
+- Estado de hambre individual por pez.
+- Actualización del hambre mediante `delta`.
+- Uso de los parámetros de configuración existentes para determinar los valores y tiempos.
+- Temporizador de hambre independiente del temporizador de supervivencia.
+- Compatibilidad con la estructura de datos individual del pez.
+
+**Configuración sin valores definidos:**
+
+Los parámetros de hambre que actualmente están en `null` deben permanecer así. No asignar valores predeterminados, aproximados ni provisionales.
+
+Si los parámetros necesarios no tienen valores numéricos finitos y válidos, el sistema debe permanecer inactivo para ese pez. No debe producir `NaN`, divisiones por cero, valores negativos inesperados ni comportamientos automáticos.
+
+No interpretar `null` como cero.
+
+## 3. Búsqueda de alimento base
+
+Implementar la integración entre la IA y la percepción para permitir que un pez busque alimento base cuando corresponda.
+
+Condiciones:
+
+- Utilizar los contactos proporcionados por `VisionSystem`.
+- Considerar únicamente alimentos que el pez pueda consumir según `canConsumeBaseFood`.
+- No implementar una clasificación de dieta paralela.
+- No buscar alimento si el sistema de hambre está inactivo o no tiene parámetros válidos.
+- Utilizar la última posición conocida del alimento cuando se pierda el contacto visual, respetando el mecanismo de recuperación existente.
+- No inventar umbrales de hambre para iniciar la búsqueda. Si el umbral necesario todavía no está configurado, la búsqueda debe permanecer desactivada.
+
+La búsqueda debe representarse mediante el estado `SEEK_FOOD`, respetando el sistema de prioridades existente.
+
+## 4. Consumo de alimento base
+
+Implementar el mecanismo básico de consumo:
+
+- El pez debe poder consumir un alimento base válido al alcanzar una distancia de interacción adecuada.
+- El alimento consumido debe dejar de estar disponible para otros peces.
+- La eliminación debe integrarse con el ciclo de vida de alimentos existente en `GameScene`.
+- Evitar que dos peces consuman el mismo alimento.
+- El consumo debe actualizar el estado de hambre solamente cuando exista una configuración válida para determinar esa actualización.
+- Si la cantidad de recuperación de hambre todavía no está configurada, no inventarla ni consumir el alimento de manera que se pierda sin producir un efecto válido.
+
+Mantener separadas las responsabilidades de percepción, decisión de comportamiento, hambre y consumo.
+
+## 5. Supervivencia
+
+Respetar la regla ya acordada:
+
+- El hambre avanza según su configuración.
+- El temporizador de supervivencia solo avanza cuando el pez tiene hambre y está buscando alimento.
+- No avanzar el temporizador de supervivencia durante otros estados.
+- No inventar una duración de supervivencia ni una condición de muerte.
+- Si los parámetros necesarios no están configurados, la supervivencia permanece inactiva.
+
+No implementar muerte del pez en esta tarea si todavía no existe una configuración válida y una regla aprobada para ello.
+
+## 6. Prioridades y compatibilidad
+
+Respetar las prioridades existentes:
+
+`EVADE > SURRENDER > COMFORT > CHARGE > CHASE > APPROACH_PREY > SEEK_FOOD > ROAM`
+
+En particular:
+
+- La evasión debe interrumpir la búsqueda de alimento.
+- La rendición debe impedir que la búsqueda se imponga sobre ella.
+- El confort debe impedir la búsqueda de alimento.
+- La búsqueda no debe reemplazar estados de mayor prioridad.
+- Al finalizar o abandonar la búsqueda, el pez debe poder volver a su comportamiento habitual.
+
+No modificar ni reinterpretar las prioridades existentes.
+
+## 7. Separación de responsabilidades
+
+Mantener la separación entre:
+
+- `VisionSystem`: detectar y mantener contactos.
+- Sistema de hambre: actualizar el hambre y sus temporizadores.
+- Sistema de alimentación: validar y ejecutar el consumo.
+- `FishAIController`: decidir el comportamiento según prioridades y datos disponibles.
+- `MovementController`: ejecutar el movimiento solicitado por la IA.
+- `GameScene`: gestionar el ciclo de vida de los alimentos y su representación.
+
+Si la arquitectura actual requiere adaptar nombres o ubicaciones, hacerlo respetando las responsabilidades existentes y evitando crear abstracciones innecesarias.
+
+## 8. Fuera de alcance
+
+No implementar:
+
+- Caza o depredación entre peces.
+- Persecución de presas.
+- Crecimiento o cambios de etapa.
+- Reproducción.
+- Muerte por hambre.
+- Nuevos valores de balance.
+- Cambios en visión, evasión o movimiento habitual que no sean estrictamente necesarios para integrar esta tarea.
+- Guardado y carga de hambre.
+- Nuevos tipos de alimento.
+
+## 9. Validación
+
+Comprobar:
+
+1. Los peces con parámetros de hambre en `null` no activan búsqueda ni consumo.
+2. Los valores no configurados no generan errores ni resultados inválidos.
+3. La percepción sigue identificando correctamente los alimentos consumibles y no consumibles.
+4. La IA respeta las prioridades existentes al decidir buscar alimento.
+5. Un alimento no puede ser consumido por más de un pez.
+6. El alimento consumido se elimina correctamente de la gestión de `GameScene`.
+7. El temporizador de supervivencia no avanza fuera de las condiciones acordadas.
+8. El movimiento habitual y la evasión siguen funcionando sin regresiones.
+
+Ejecutar el build disponible y corregir los errores introducidos por esta implementación. Si existen pruebas automatizadas, ejecutarlas; no afirmar que se verificó algo que no se ejecutó.
+
+## 10. Entrega
+
+Al terminar:
+
+- Resumir los archivos modificados.
+- Explicar brevemente las responsabilidades implementadas.
+- Indicar qué partes permanecen inactivas por falta de parámetros configurados.
+- Informar los comandos de validación ejecutados y sus resultados.
+- No realizar commit ni push sin autorización.
+- No comenzar la siguiente tarea.
+
+**Criterio principal:** dejar implementada la infraestructura de hambre y alimentación básica, preparada para activarse cuando definamos los parámetros pendientes, sin introducir decisiones de diseño o balance por cuenta propia.
+- [x] Instrucción 05 - Hambre y alimentación básica: HungerSystem/FeedingSystem/SEEK_FOOD integrados; inactivos sin parámetros válidos; consumo único; supervivencia solo hambriento+SEEK_FOOD; sin muerte/balance.

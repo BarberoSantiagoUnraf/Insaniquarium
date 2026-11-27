@@ -5,6 +5,8 @@ import GameHud from '../ui/GameHud.js';
 import Wallet from '../systems/Wallet.js';
 import EntityManager from '../entities/EntityManager.js';
 import MovementController from '../systems/MovementController.js';
+import HungerSystem from '../systems/HungerSystem.js';
+import FeedingSystem from '../systems/FeedingSystem.js';
 import { createAiDependencies } from '../ai/systemRoles.js';
 import {
   ECONOMY,
@@ -31,12 +33,18 @@ export default class GameScene extends Phaser.Scene {
     this.entities = new EntityManager();
     this.movementController = new MovementController();
     this.visionSystem = new VisionSystem();
+    this.hungerSystem = new HungerSystem();
+    this.feedingSystem = new FeedingSystem({ distance: FOOD_RULES.RADIUS + 18 });
     this.fishAiController = new FishAIController({
       movementController: this.movementController,
+      hungerSystem: this.hungerSystem,
+      feedingSystem: this.feedingSystem,
     });
     this.aiDependencies = createAiDependencies(this.entities);
     this.aiDependencies.movementController = this.movementController;
     this.aiDependencies.visionSystem = this.visionSystem;
+    this.aiDependencies.hungerSystem = this.hungerSystem;
+    this.aiDependencies.feedingSystem = this.feedingSystem;
     this.aiDependencies.fishAiController = this.fishAiController;
     this.initialFish = this.createInitialFish();
     this.fish = this.initialFish.references.shape;
@@ -111,7 +119,7 @@ export default class GameScene extends Phaser.Scene {
       foods: this.foods,
       delta,
     });
-    this.fishAiController.update(delta, this.getArenaBounds());
+    this.fishAiController.update(delta, this.getArenaBounds(), { foods: this.foods });
 
     for (let index = this.foods.length - 1; index >= 0; index -= 1) {
       const food = this.foods[index];

@@ -71,3 +71,10 @@ pm run build; scripts Node para activación, duración por escala, continuidad s
 
 ## 2026-11-27 - Corrección puntual Instrucción 04: Boost evasión
 - FishAIController.canUseBoost: requiere oostSpeed, oostDuration y oostCooldown numéricos > 0. Sin valores válidos no se activa boost; la evasión usa velocidad habitual. No se inventan duraciones/cooldowns.
+
+## 2026-11-27 - Instrucción 05: Hambre y alimentación básica
+- HungerSystem: actualiza hambre con delta solo si hungerMax y hungerDecayInterval son válidos; seekThreshold habilita estado hambriento; sin parámetros válidos queda inactivo y limpia timers/estado. Supervivencia avanza solo si hambriento y en SEEK_FOOD, y si survivalMaxDuration es válido; no implementa muerte.
+- FeedingSystem: consume alimento base consumible al alcance, evita doble consumo quitando el alimento de la lista de escena antes de recuperar hambre; si hungerRecoveryAmount/hungerMax no válidos, no consume.
+- FishAIController/MovementController: integra SEEK_FOOD con prioridad existente (EVADE>SURRENDER>COMFORT>...>SEEK_FOOD>ROAM), usa última posición conocida por recuperación visual, y vuelve a ROAM al no poder buscar.
+- GameScene: instancia Hunger/Feeding systems y pasa oods al AI controller. Validación: 
+pm run build OK; checks Node para inactividad por null, consumo único, supervivencia solo en SEEK_FOOD, sin búsqueda con config inválida.

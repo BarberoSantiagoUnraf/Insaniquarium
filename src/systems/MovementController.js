@@ -44,6 +44,25 @@ export default class MovementController {
     }
   }
 
+  updateSeekFood(entry, delta, targetPosition) {
+    if (targetPosition) {
+      const shape = entry.fish.references.shape;
+      const dx = targetPosition.x - shape.x;
+      const dy = targetPosition.y - shape.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 0.001) {
+        entry.targetHeading = { x: dx / len, y: dy / len };
+        entry.heading = { ...entry.targetHeading };
+        entry.directionElapsed = 0;
+      }
+    }
+
+    this.updateHeading(entry, delta);
+    const speed = this.getCurrentSpeed(entry, delta);
+    this.moveFish(entry, speed, delta);
+    this.constrainToBounds(entry);
+  }
+
   updateRoam(entry, delta) {
     const config = FISH_CONFIG[entry.fish.persistent.species];
     const directionChangeInterval = config?.directionChangeInterval ?? 2000;

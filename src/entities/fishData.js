@@ -24,6 +24,8 @@ export function createFishData({ id, species, x, y }) {
       hunger: null,
       hungerTimer: 0,
       survivalTimer: 0,
+      isHungry: false,
+      isSeekingFood: false,
       position: { x, y },
       orientation: 1,
       behaviorState: BEHAVIOR_STATES.ROAM,
@@ -39,6 +41,10 @@ export function createFishData({ id, species, x, y }) {
         boostActive: false,
         boostTimer: 0,
         boostCooldownTimer: 0,
+      },
+      feeding: {
+        targetId: null,
+        targetLastPosition: null,
       },
     },
     references: {
