@@ -87,8 +87,18 @@ export default class MovementController {
     const shape = fish.references.shape;
     fish.transient.position.x = shape.x;
     fish.transient.position.y = shape.y;
-    fish.transient.orientation = entry.heading.x < 0 ? -1 : 1;
     shape.setFlipX(fish.transient.orientation < 0);
+  }
+
+  setFacingOrientation(entry, orientation) {
+    if (orientation !== -1 && orientation !== 1) {
+      return;
+    }
+    entry.fish.transient.orientation = orientation;
+    const shape = entry.fish.references.shape;
+    if (shape) {
+      shape.setFlipX(orientation < 0);
+    }
   }
 
   getCurrentSpeed(entry, delta) {
@@ -119,6 +129,7 @@ export default class MovementController {
     if (immediate) {
       entry.heading = { ...entry.targetHeading };
     }
+    this.updateFacingFromHeading(entry);
   }
 
   updateHeading(entry, delta) {
@@ -177,6 +188,15 @@ export default class MovementController {
     entry.targetHeading = { x: Math.cos(angle), y: Math.sin(angle) };
     entry.heading = { ...entry.targetHeading };
     entry.directionElapsed = 0;
+    this.updateFacingFromHeading(entry);
+  }
+
+  updateFacingFromHeading(entry) {
+    const facingX = entry.targetHeading.x || entry.heading.x;
+    if (Math.abs(facingX) < 0.01) {
+      return;
+    }
+    this.setFacingOrientation(entry, facingX < 0 ? -1 : 1);
   }
 
   getProbePoint(entry, nextX, nextY) {
@@ -223,6 +243,7 @@ export default class MovementController {
       if (!this.findBlockingObstacle(entry, probeX, probeY) && this.isInsideBounds(entry, probeX, probeY)) {
         entry.targetHeading = candidate;
         entry.directionElapsed = 0;
+        this.updateFacingFromHeading(entry);
         return;
       }
     }

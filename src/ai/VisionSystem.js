@@ -1,4 +1,4 @@
-﻿import { canConsumeFish } from '../config/fishConfig.js';
+﻿import { canConsumeBaseFood, canConsumeFish } from '../config/fishConfig.js';
 import { VISION_CATEGORIES, VISION_FIELD } from './visionTypes.js';
 
 function normalizeAngle(angle) {
@@ -76,6 +76,7 @@ export default class VisionSystem {
       }
     }
 
+    const canEatBaseFood = canConsumeBaseFood(fish);
     for (const food of foods) {
       const x = food.shape.x;
       const y = food.shape.y;
@@ -85,6 +86,7 @@ export default class VisionSystem {
           id: food.id ?? food.shape,
           type: 'food',
           category: VISION_CATEGORIES.FOOD,
+          consumable: canEatBaseFood,
           position: { x, y },
           distance: check.distance,
         });

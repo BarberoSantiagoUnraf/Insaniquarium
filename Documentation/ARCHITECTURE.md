@@ -1,61 +1,61 @@
-# Arquitectura
+﻿# Arquitectura
 
 ## Stack
 
 - Phaser 3.90.0 fijado.
 - Vite 8.3.8 fijado.
-- JavaScript modular ( ype: module).
+- JavaScript modular (`type: module`).
 
 ## Estructura
 
-- src/scenes/BootScene.js: genera texturas provisionales y arranca MenuScene.
-- src/scenes/MenuScene.js: pantalla inicial con botones Jugar y Salir.
-- src/scenes/GameScene.js: escenario, herramientas, entidades y ciclo de alimento.
-- src/scenes/PauseScene.js: menú de pausa superpuesto.
-- src/ui/GameHud.js: HUD superior, selección de herramientas y contador.
-- src/ui/UiButton.js: botón reutilizable con estados normal, hover, activo y seleccionado.
-- src/systems/Wallet.js: saldo, validación de costo y notificaciones.
-- src/systems/MovementController.js: movimiento habitual, rumbo, velocidad, bordes y evitación simple de obstáculos.
-- src/services/saveService.js: punto de extensión para guardado.
-- src/config/constants.js: constantes de escenas, texturas, herramientas, economía y reglas de peces.
-- src/config/fishConfig.js: configuración por especie y fórmulas centralizadas de parámetros derivados.
-- src/entities/fishData.js: datos persistentes, temporales y referencias de cada pez.
-- src/entities/EntityManager.js: registro, ids únicos y consulta de peces activos.
-- src/ai/FishAIController.js: coordina comportamiento individual; hoy ejecuta ROAM delegando en movimiento.
-- src/ai/VisionSystem.js: percepción visual, clasificación de contactos y recuperación visual.
-- src/ai/visionTypes.js: categorías de visión y constantes del campo visual.
-- src/ai/behaviorStates.js: estados de comportamiento y prioridades.
-- src/ai/systemRoles.js: responsabilidades y dependencias de los sistemas de IA.
+- `src/scenes/BootScene.js`: genera texturas provisionales y arranca `MenuScene`.
+- `src/scenes/MenuScene.js`: pantalla inicial con botones Jugar y Salir.
+- `src/scenes/GameScene.js`: escenario, herramientas, entidades y ciclo de alimento.
+- `src/scenes/PauseScene.js`: menú de pausa superpuesto.
+- `src/ui/GameHud.js`: HUD superior, selección de herramientas y contador.
+- `src/ui/UiButton.js`: botón reutilizable con estados normal, hover, activo y seleccionado.
+- `src/systems/Wallet.js`: saldo, validación de costo y notificaciones.
+- `src/systems/MovementController.js`: movimiento habitual, rumbo, velocidad, bordes y evitación simple de obstáculos.
+- `src/services/saveService.js`: punto de extensión para guardado.
+- `src/config/constants.js`: constantes de escenas, texturas, herramientas, economía y reglas de peces.
+- `src/config/fishConfig.js`: configuración por especie y fórmulas centralizadas de parámetros derivados.
+- `src/entities/fishData.js`: datos persistentes, temporales y referencias de cada pez.
+- `src/entities/EntityManager.js`: registro, ids únicos y consulta de peces activos.
+- `src/ai/FishAIController.js`: coordina comportamiento individual; hoy ejecuta ROAM delegando en movimiento.
+- `src/ai/VisionSystem.js`: percepción visual, clasificación de contactos y recuperación visual.
+- `src/ai/visionTypes.js`: categorías de visión y constantes del campo visual.
+- `src/ai/behaviorStates.js`: estados de comportamiento y prioridades.
+- `src/ai/systemRoles.js`: responsabilidades y dependencias de los sistemas de IA.
 
 ## Decisiones
 
-- Las versiones están fijadas en package.json para evitar cambios de API entre instalaciones.
-- El HUD es un componente independiente dentro de GameScene.
-- La pausa usa una escena paralela: GameScene se detiene y PauseScene mantiene la interfaz activa.
-- Los assets son texturas generadas en BootScene, reemplazables sin tocar las escenas.
-- UiButton.resize() devuelve  his para permitir encadenar .setPosition().
-- El hitArea de UiButton usa (0, 0, width, height) porque Phaser ya suma el displayOrigin del Container.
+- Las versiones están fijadas en `package.json` para evitar cambios de API entre instalaciones.
+- El HUD es un componente independiente dentro de `GameScene`.
+- La pausa usa una escena paralela: `GameScene` se detiene y `PauseScene` mantiene la interfaz activa.
+- Los assets son texturas generadas en `BootScene`, reemplazables sin tocar las escenas.
+- `UiButton.resize()` devuelve `this` para permitir encadenar `.setPosition()`.
+- El `hitArea` de `UiButton` usa `(0, 0, width, height)` porque Phaser ya suma el `displayOrigin` del Container.
 - La selección de herramientas es exclusiva y se alterna al volver a pulsar el mismo botón.
-- Un Zone interactivo cubre solo el área debajo del HUD, por lo que los clics en el HUD no generan entidades.
+- Un `Zone` interactivo cubre solo el área debajo del HUD, por lo que los clics en el HUD no generan entidades.
 - El alimento se administra como una lista de círculos: cae, se detiene en el fondo y se destruye luego de 4 segundos.
 - La Billetera centraliza todas las operaciones económicas y el HUD se suscribe a sus cambios.
-- Al pausar GameScene, update() deja de ejecutarse y los temporizadores del alimento quedan detenidos.
-- El guardado no persiste datos todavía: saveGame devuelve un resultado sin guardar hasta configurar un handler.
-- El escalado usa Phaser.Scale.RESIZE; cada layout recalcula posiciones y tamaños.
-- Los peces se registran en EntityManager; el surubí inicial y los comprados comparten la misma estructura de datos.
-- Los datos del pez se dividen en persistent,  ransient y eferences; las referencias a entidades no se consideran persistibles.
-- Los parámetros derivados se calculan con deriveFishStats() y se exponen como getter, sin duplicarlos en el pez.
+- Al pausar `GameScene`, `update()` deja de ejecutarse y los temporizadores del alimento quedan detenidos.
+- El guardado no persiste datos todavía: `saveGame` devuelve un resultado sin guardar hasta configurar un handler.
+- El escalado usa `Phaser.Scale.RESIZE`; cada layout recalcula posiciones y tamaños.
+- Los peces se registran en `EntityManager`; el surubí inicial y los comprados comparten la misma estructura de datos.
+- Los datos del pez se dividen en `persistent`, `transient` y `references`; las referencias a entidades no se consideran persistibles.
+- Los parámetros derivados se calculan con `deriveFishStats()` y se exponen como getter, sin duplicarlos en el pez.
 - La velocidad habitual y de Boost se derivan inversamente proporcionales a la escala individual.
-- Los parámetros no definidos quedan en 
-ull y los valores necesarios para inicializar están agrupados en PROVISIONAL_FISH_VALUES.
-- Los cuatro estadios son larva, juvenil, adulto y viejo; aseWeightByStage contempla los cuatro con valores provisionales, sin lógica de crecimiento.
+- Los parámetros no definidos quedan en `null` y los valores necesarios para inicializar están agrupados en `PROVISIONAL_FISH_VALUES`.
+- Los cuatro estadios son larva, juvenil, adulto y viejo; `baseWeightByStage` contempla los cuatro con valores provisionales, sin lógica de crecimiento.
 - La evasión tiene la prioridad más alta entre los estados de comportamiento.
-- La escala individual se aplica al displaySize; HUD y economía no se modificaron.
-- MovementController administra rumbo, velocidad y colisiones simples; FishAIController solo decide ejecutar ROAM mientras no haya comportamientos prioritarios.
-- VisionSystem no cambia estado/movimiento: solo registra contactos visibles, última posición conocida y ecoveryTimer independiente por contacto.
-- La visión usa un cono de 270° orientado a la cabeza ( ransient.orientation: derecha/izquierda). La representación actual solo soporta orientación horizontal; no se infiere rotación vertical. Alcance isionRange * scale.
-- La clasificación usa una única fuente de dietas en ishConfig.js (FISH_DIETS, canConsumeFish): presa/amenaza por dieta y etapa, compañero por misma especie, alimento base como ood. No usa peso/escala para depredación.
-- El movimiento usa valores provisionales por especie para velocidad e intervalo de rumbo, centralizados en ishConfig.js.
+- La escala individual se aplica al `displaySize`; HUD y economía no se modificaron.
+- `MovementController` administra rumbo, velocidad y colisiones simples; `FishAIController` solo decide ejecutar ROAM mientras no haya comportamientos prioritarios.
+- `VisionSystem` no cambia estado/movimiento: solo registra contactos visibles, última posición conocida y `recoveryTimer` independiente por contacto.
+- La visión usa un cono de 270° orientado a la cabeza (`transient.orientation`: derecha/izquierda). La representación actual solo soporta orientación horizontal; no se infiere rotación vertical. Alcance `visionRange * scale`.
+- Heading y orientación visual están desacoplados: el movimiento actualiza posición/rumbo; la orientación solo cambia por operaciones explícitas de facing (`setFacingOrientation`/actualización desde heading objetivo), no por el desplazamiento. Retroceder conserva orientación.
+- La clasificación usa una única fuente de dietas en `fishConfig.js` (`FISH_DIETS`, `canConsumeFish`, `canConsumeBaseFood`): presa/amenaza por dieta y etapa, compañero por misma especie. El alimento base se detecta visualmente; `consumable` depende de la dieta/etapa. No usa peso/escala para depredación.
+- El movimiento usa valores provisionales por especie para velocidad e intervalo de rumbo, centralizados en `fishConfig.js`.
 
 ## Capas de renderizado
 
@@ -63,5 +63,4 @@ ull y los valores necesarios para inicializar están agrupados en PROVISIONAL_FI
 - Peces: profundidad 10.
 - Alimento: profundidad 20.
 - HUD: profundidad 100.
-- Menú de pausa: escena separada por encima de GameScene.
-
+- Menú de pausa: escena separada por encima de `GameScene`.
