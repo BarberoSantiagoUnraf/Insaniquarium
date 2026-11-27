@@ -129,7 +129,6 @@ export default class MovementController {
     if (immediate) {
       entry.heading = { ...entry.targetHeading };
     }
-    this.updateFacingFromHeading(entry);
   }
 
   updateHeading(entry, delta) {
@@ -188,15 +187,6 @@ export default class MovementController {
     entry.targetHeading = { x: Math.cos(angle), y: Math.sin(angle) };
     entry.heading = { ...entry.targetHeading };
     entry.directionElapsed = 0;
-    this.updateFacingFromHeading(entry);
-  }
-
-  updateFacingFromHeading(entry) {
-    const facingX = entry.targetHeading.x || entry.heading.x;
-    if (Math.abs(facingX) < 0.01) {
-      return;
-    }
-    this.setFacingOrientation(entry, facingX < 0 ? -1 : 1);
   }
 
   getProbePoint(entry, nextX, nextY) {
@@ -243,7 +233,6 @@ export default class MovementController {
       if (!this.findBlockingObstacle(entry, probeX, probeY) && this.isInsideBounds(entry, probeX, probeY)) {
         entry.targetHeading = candidate;
         entry.directionElapsed = 0;
-        this.updateFacingFromHeading(entry);
         return;
       }
     }
