@@ -27,3 +27,12 @@
 - Implementación del escenario inicial con fondo y un surubí.
 - Incorporación del servicio de guardado preparado para futura integración.
 - Corrección del `hitArea` de `UiButton` y del retorno de `resize()`.
+
+## 2026-11-27 - Movimiento habitual
+
+- Agregado MovementController para desplazamiento continuo, rumbo por intervalos, variación progresiva, fluctuación moderada de velocidad, rebote hacia el centro y evitación simple de obstáculos.
+- Agregado FishAIController para ejecutar ROAM delegando en movimiento, manteniendo la separación de responsabilidades.
+- ishConfig.js incorpora valores provisionales por especie para velocidad habitual e intervalo de cambio de rumbo; la velocidad habitual derivada es inversamente proporcional a la escala.
+- GameScene registra peces en el movimiento, actualiza IA en update y expone bounds del área jugable con lista de obstáculos vacía por ahora.
+- Verificación: 
+pm run build y cálculo de velocidad por escala.

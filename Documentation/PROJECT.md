@@ -66,7 +66,7 @@ El jugador debe disponer de alimento para mantener a los peces y favorecer su cr
 Una vez introducido en el escenario, el alimento pasa a formar parte del entorno y puede ser detectado por los peces. Estos deberán identificarlo como un recurso disponible, desplazarse hacia él y consumirlo cuando se encuentren dentro de las condiciones necesarias.
 
 La alimentación presenta dos modalidades principales:
-- Alimentación convencional: Forma básica e inicial la cual alimentará a todos los peces en su fase de infante.
+- Alimentación convencional: Forma básica e inicial la cual alimentará a todos los peces en su fase de larva.
 - Alimentación mediante presas: destinada a las especies carnívoras, que necesitan capturar otros peces para alimentarse.
 La compatibilidad entre alimento, tamaño y especie se definirá en el apartado correspondiente al sistema de alimentación y comportamiento de los peces.
 2.5 Crecimiento de los peces

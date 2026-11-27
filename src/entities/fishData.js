@@ -15,7 +15,7 @@ export function createFishData({ id, species, x, y }) {
     persistent: {
       id,
       species,
-      growthStage: GROWTH_STAGES.INFANT,
+      growthStage: GROWTH_STAGES.LARV,
       scale: randomFloat(FISH_RULES.SCALE.MIN, FISH_RULES.SCALE.MAX),
       instinct: randomInteger(FISH_RULES.INSTINCT.MIN, FISH_RULES.INSTINCT.MAX),
       growthProgress: 0,
@@ -35,6 +35,7 @@ export function createFishData({ id, species, x, y }) {
   };
 
   Object.defineProperty(fish, 'stats', {
+    enumerable: true,
     get: () => deriveFishStats(
       fish.persistent.species,
       fish.persistent.scale,

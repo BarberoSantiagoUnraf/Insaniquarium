@@ -26,7 +26,7 @@ export const SPECIES = Object.freeze({
 });
 
 export const GROWTH_STAGES = Object.freeze({
-  INFANT: 'infant',
+  LARV: 'larva',
   JUVENILE: 'juvenile',
   ADULT: 'adult',
   OLD: 'old',

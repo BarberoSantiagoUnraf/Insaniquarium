@@ -1,18 +1,28 @@
-import { GROWTH_STAGES, SPECIES } from '../config/constants.js';
+import { GROWTH_STAGES, SPECIES } from './constants.js';
 
 export const PROVISIONAL_FISH_VALUES = Object.freeze({
   BASE_WEIGHT_BY_STAGE: Object.freeze({
-    [GROWTH_STAGES.INFANT]: 1,
+    [GROWTH_STAGES.LARV]: 1,
     [GROWTH_STAGES.JUVENILE]: null,
     [GROWTH_STAGES.ADULT]: null,
     [GROWTH_STAGES.OLD]: null,
   }),
+  HABITUAL_SPEED: Object.freeze({
+    [SPECIES.MOJARRITA]: 62,
+    [SPECIES.SURUBI]: 46,
+    [SPECIES.DIENTUDO]: 54,
+  }),
+  DIRECTION_CHANGE_INTERVAL: Object.freeze({
+    [SPECIES.MOJARRITA]: 1800,
+    [SPECIES.SURUBI]: 2400,
+    [SPECIES.DIENTUDO]: 2100,
+  }),
 });
 
-function createSpeciesConfig() {
+function createSpeciesConfig(species) {
   return {
-    habitualSpeed: null,
-    directionChangeInterval: null,
+    habitualSpeed: PROVISIONAL_FISH_VALUES.HABITUAL_SPEED[species],
+    directionChangeInterval: PROVISIONAL_FISH_VALUES.DIRECTION_CHANGE_INTERVAL[species],
     visionRange: null,
     visualRecoveryTime: null,
     boost: {
@@ -36,13 +46,14 @@ function createSpeciesConfig() {
 }
 
 export const FISH_CONFIG = Object.freeze({
-  [SPECIES.MOJARRITA]: createSpeciesConfig(),
-  [SPECIES.SURUBI]: createSpeciesConfig(),
-  [SPECIES.DIENTUDO]: createSpeciesConfig(),
+  [SPECIES.MOJARRITA]: createSpeciesConfig(SPECIES.MOJARRITA),
+  [SPECIES.SURUBI]: createSpeciesConfig(SPECIES.SURUBI),
+  [SPECIES.DIENTUDO]: createSpeciesConfig(SPECIES.DIENTUDO),
 });
 
 export const FISH_DERIVATION = Object.freeze({
   scaledValue: (value, scale) => (value === null ? null : value * scale),
+  habitualSpeed: (value, scale) => (value === null ? null : value / scale),
   boostedSpeed: (habitualSpeed, speedMultiplier, scale) => (
     habitualSpeed === null || speedMultiplier === null
       ? null
@@ -57,6 +68,7 @@ export function deriveFishStats(species, scale, growthStage) {
   }
 
   return {
+    habitualSpeed: FISH_DERIVATION.habitualSpeed(config.habitualSpeed, scale),
     effectiveWeight: FISH_DERIVATION.scaledValue(
       config.baseWeightByStage[growthStage] ?? null,
       scale,

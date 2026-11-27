@@ -1,4 +1,4 @@
-# Estado actual
+﻿# Estado actual
 
 ## Implementado
 
@@ -9,14 +9,16 @@
 - Menú de pausa con Continuar, Guardar y Volver al menú; la simulación se detiene al pausar.
 - Selección persistente y exclusiva de alimento, mojarritas y surubí; volver a pulsar la misma herramienta la desactiva.
 - Colocación de alimento con clic dentro del área de juego y ciclo de caída, espera de 4 segundos y desaparición.
-- Generación de mojarritas y surubíes por clic, sin comportamientos autónomos.
+- Generación de mojarritas y surubíes por clic.
+- Movimiento habitual de peces: desplazamiento continuo, rumbo aleatorio por intervalos configurables por especie, variación progresiva de rumbo, fluctuación moderada de velocidad, cambio inmediato hacia el centro al tocar bordes y evitación simple de obstáculos fijos.
 - Estructura común de datos de peces con identificador, especie, etapa, escala e instinto individuales, separando datos persistentes, temporales y referencias.
-- Registro de todos los peces en `EntityManager`, incluido el surubí inicial.
-- Configuración independiente para mojarrita, surubí y dientudo, con parámetros no definidos en `null` y valores provisionales identificados.
-- Cuatro estadios de crecimiento representados: infante, juvenil, adulto y viejo; los pesos base de los tres últimos permanecen provisionales y no hay lógica de crecimiento.
+- Registro de todos los peces en EntityManager, incluido el surubí inicial.
+- Configuración independiente para mojarrita, surubí y dientudo, con parámetros no definidos en 
+ull y valores provisionales identificados.
+- Cuatro estadios de crecimiento representados: larva, juvenil, adulto y viejo; los pesos base de los tres últimos permanecen provisionales y no hay lógica de crecimiento.
 - Cálculo centralizado de parámetros derivados desde la configuración y la escala individual.
 - Representación de los ocho estados de comportamiento con prioridad máxima para la evasión.
-- Mapa de responsabilidades y dependencias de los siete sistemas de IA, sin implementar sus comportamientos.
+- Mapa de responsabilidades y dependencias de los sistemas de IA; FishAIController y MovementController implementados para movimiento habitual.
 - Escala individual aplicada al tamaño visual de los peces.
 - Billetera inicial de 100 monedas con costos fijos: alimento 2, mojarrita 5 y surubí 20.
 - Contador de monedas actualizado en el HUD después de cada compra.
@@ -25,24 +27,19 @@
 
 ## Verificación
 
-- `npm run build` ejecutado correctamente.
-- `npm audit` sin vulnerabilidades.
-- Verificación en Chrome headless a 1280x720 sin errores de página:
-  - saldo inicial 100 y contador `Monedas: 100`;
-  - selección, desactivación y cambio de herramienta;
-  - clics en el HUD sin generar entidades;
-  - compras de 2, 5 y 20 monedas con actualización del contador;
-  - gasto de 1000 monedas rechazado sin cambiar el saldo;
-  - alimento caído hasta el fondo, detenido 4 segundos y desaparecido;
-  - pausa congelando la posición del alimento y reanudación reanudando la caída.
-- Verificación de datos de peces: ids únicos, tres especies configuradas, escala dentro de 0.7–1.3, instinto entero dentro de 2–8, peso efectivo derivado y evasión con prioridad máxima.
-- Verificación en Chrome headless sobre el build: un canvas creado y `data-errors="[]"` después de 2.5 segundos.
-- Verificación de los cuatro estadios y de la presencia de sus pesos base en las tres configuraciones de especie.
+- 
+pm run build ejecutado correctamente.
+- 
+ode --input-type=module -e "import './src/systems/MovementController.js'; import './src/ai/FishAIController.js'; console.log('ok')" ejecutado correctamente.
+- Verificación por cálculo: velocidad habitual derivada inversamente proporcional a la escala (mojarrita scale 1.3 -> 47.69, scale 0.7 -> 88.57).
+- Verificaciones previas conservadas: HUD/economía, ciclo de alimento, pausa, datos de peces, ids únicos, rangos de escala/instinto y evasión con prioridad máxima.
 
 ## Pendiente
 
 - Sustituir texturas provisionales por arte definitivo.
 - Implementar guardado real cuando exista el formato de partida.
-- Definir los valores definitivos de los parámetros de peces que hoy son provisionales o `null`.
-- Implementar los sistemas de IA y los comportamientos en iteraciones posteriores.
-- Incorporar consumo, hambre, crecimiento, depredación y comportamientos autónomos en iteraciones posteriores.
+- Definir los valores definitivos de los parámetros de peces que hoy son provisionales o 
+ull.
+- Implementar alimentación, hambre/supervivencia, persecución, embestida, evasión, confort, rendición y crecimiento.
+- Incorporar obstáculos/decoraciones reales con hitboxes en el área de juego.
+- Ajustar valores provisionales de movimiento tras pruebas visuales.
